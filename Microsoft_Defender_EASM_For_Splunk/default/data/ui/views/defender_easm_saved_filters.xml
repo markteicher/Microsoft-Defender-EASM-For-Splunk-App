@@ -1,0 +1,76 @@
+<!-- defender_easm_saved_filters.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- Dashboard: Saved Filters -->
+
+<dashboard version="1.1">
+  <label>Saved Filters</label>
+  <description>
+    Displays saved filters configured in Microsoft Defender EASM.
+    Enables visibility into reusable query logic across asset discovery,
+    reports, and investigations.
+  </description>
+
+  <!-- Time Picker -->
+  <row>
+    <panel>
+      <input type="time" token="time_range">
+        <label>Time Range</label>
+        <default>
+          <earliest>-90d</earliest>
+          <latest>now</latest>
+        </default>
+      </input>
+    </panel>
+  </row>
+
+  <!-- Saved Filters Table -->
+  <row>
+    <panel>
+      <title>Saved Filters</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:saved_filter
+            | stats
+                latest(displayName) as display_name
+                latest(description) as description
+                latest(filterType) as filter_type
+                latest(createdBy) as created_by
+                latest(createdDateTime) as created_date
+                latest(lastModifiedDateTime) as last_modified_date
+              by filterId
+            | rename filterId as filter_id
+            | sort display_name
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+
+        <option name="count">15</option>
+        <option name="wrap">true</option>
+        <option name="drilldown">row</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Filter Usage Summary -->
+  <row>
+    <panel>
+      <title>Saved Filter Summary</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:saved_filter
+            | stats count by filterType
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+
+        <option name="charting.chart">bar</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+
+</dashboard>
