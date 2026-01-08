@@ -1,0 +1,92 @@
+<!-- default/data/ui/views/defender_easm_task_detail.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- Task Detail Drilldown -->
+
+<dashboard version="1.1" theme="light">
+  <label>Task Detail</label>
+
+  <description>
+    Detailed execution view for a single Defender EASM task.
+  </description>
+
+  <!-- ========================= -->
+  <!-- Drilldown Token -->
+  <!-- ========================= -->
+  <init>
+    <set token="task_id">$task_id$</set>
+  </init>
+
+  <!-- ========================= -->
+  <!-- Task Overview -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Task Overview</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:task taskId="$task_id$"
+            | eval duration_seconds = round((endTime - startTime),2)
+            | table taskId taskType status duration_seconds startTime endTime createdBy
+          </query>
+        </search>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- Task Status Timeline -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Task Status Timeline</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:task taskId="$task_id$"
+            | timechart span=5m count by status
+          </query>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- Failure Details (Conditional) -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Failure Details</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:task taskId="$task_id$" status="Failed"
+            | table failureReason errorCode errorMessage
+          </query>
+        </search>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- Raw Task Payload -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Raw Task Event</title>
+      <event>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:task taskId="$task_id$"
+          </query>
+        </search>
+        <option name="list.drilldown">none</option>
+      </event>
+    </panel>
+  </row>
+
+</dashboard>
