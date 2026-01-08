@@ -1,0 +1,128 @@
+<!-- default/data/ui/views/defender_easm_tasks.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- Dashboard: Tasks -->
+
+<dashboard version="1.1" theme="light">
+  <label>Tasks</label>
+
+  <description>
+    Monitor Microsoft Defender EASM task execution, status, timing, and failures.
+    Data sourced from the Defender EASM Tasks data-plane API.
+  </description>
+
+  <!-- Time Picker -->
+  <fieldset submitButton="false">
+    <input type="time">
+      <label>Time Range</label>
+      <default>
+        <earliest>-7d@d</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+
+  <!-- ========================= -->
+  <!-- Task Summary KPIs -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Task Summary</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:task
+            | stats
+                count as total_tasks,
+                count(eval(status="Succeeded")) as succeeded,
+                count(eval(status="Failed")) as failed,
+                count(eval(status="Running")) as running,
+                count(eval(status="Queued")) as queued
+          </query>
+        </search>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- Task Execution Timeline -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Task Executions Over Time</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:task
+            | timechart span=1h count by status
+          </query>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- Task Duration Analysis -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Task Execution Duration (Seconds)</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:task
+            | eval duration_seconds = round((endTime - startTime),2)
+            | stats avg(duration_seconds) as avg_duration,
+                    max(duration_seconds) as max_duration,
+                    min(duration_seconds) as min_duration
+          </query>
+        </search>
+        <option name="charting.chart">column</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- Failed Tasks -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Failed Tasks</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:task status="Failed"
+            | table taskId taskType status failureReason startTime endTime
+            | sort - startTime
+          </query>
+        </search>
+        <option name="count">20</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- Task Details -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Task Details</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:task
+            | eval duration_seconds = round((endTime - startTime),2)
+            | table taskId taskType status duration_seconds startTime endTime createdBy
+            | sort - startTime
+          </query>
+        </search>
+        <option name="count">25</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+
+</dashboard>
