@@ -1,0 +1,66 @@
+<!-- defender_easm_data_connection_validation.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- Dashboard: Data Connection Validation -->
+
+<dashboard version="1.1">
+  <label>Data Connection Validation</label>
+  <description>
+    Validate Microsoft Defender EASM data connections using the data-plane
+    validate-data-connection API. Displays validation status, errors, warnings,
+    and historical validation results.
+  </description>
+
+  <row>
+    <panel>
+      <title>Latest Validation Status</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:data_connection_validation
+            | sort - validation_time
+            | head 1
+            | table validation_time connection_name connection_type is_valid
+          </query>
+          <earliest>-7d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">5</option>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Validation Results (Last 30 Days)</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:data_connection_validation
+            | eval status=if(is_valid="true","VALID","FAILED")
+            | table validation_time connection_name connection_type status error_code error_message warning_message validated_by
+            | sort - validation_time
+          </query>
+          <earliest>-30d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">20</option>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Validation Failures by Error Code</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:data_connection_validation
+            is_valid=false
+            | stats count by error_code
+            | sort - count
+          </query>
+          <earliest>-30d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.axis
