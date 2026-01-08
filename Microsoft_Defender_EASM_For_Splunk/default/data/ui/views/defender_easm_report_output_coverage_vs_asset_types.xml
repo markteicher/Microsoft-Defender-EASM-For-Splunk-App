@@ -1,0 +1,94 @@
+<!-- defender_easm_report_output_coverage_vs_asset_types.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- Dashboard: Report Output Coverage vs Asset Types -->
+
+<dashboard version="1.1">
+  <label>Report Output Coverage vs Asset Types</label>
+  <description>
+    Visibility into Microsoft Defender EASM report coverage across asset types.
+    Shows which asset categories are included in reports and highlights gaps.
+  </description>
+
+  <!-- Time Range Picker -->
+  <row>
+    <panel>
+      <input type="time" token="time_range">
+        <label>Time Range</label>
+        <default>
+          <earliest>-30d</earliest>
+          <latest>now</latest>
+        </default>
+      </input>
+    </panel>
+  </row>
+
+  <!-- Coverage Summary Table -->
+  <row>
+    <panel>
+      <title>Report Coverage by Asset Type</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:report_output
+            | stats
+                count(report_id) as reports_generated
+                dc(asset_id) as unique_assets
+              by asset_type
+            | sort -unique_assets
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Coverage Distribution -->
+  <row>
+    <panel>
+      <title>Asset Type Coverage Distribution</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:report_output
+            | stats dc(asset_id) as asset_count by asset_type
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Coverage Gap Identification -->
+  <row>
+    <panel>
+      <title>Potential Coverage Gaps</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:asset
+            | stats dc(asset_id) as total_assets by asset_type
+            | join asset_type [
+                search index=security_defender_easm sourcetype=defender:easm:report_output
+                | stats dc(asset_id) as reported_assets by asset_type
+              ]
+            | eval reported_assets=coalesce(reported_assets, 0)
+            | eval coverage_percent=round((reported_assets/total_assets)*100, 2)
+            | table asset_type total_assets reported_assets coverage_percent
+            | sort coverage_percent
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+
+</dashboard>
