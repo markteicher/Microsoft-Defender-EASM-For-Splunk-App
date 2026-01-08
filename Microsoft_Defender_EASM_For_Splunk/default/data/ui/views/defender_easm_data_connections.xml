@@ -1,40 +1,37 @@
 <!--
-    defender_easm_data_connections.xml
-    Microsoft Defender EASM for Splunk App
-
-    Dashboard: Data Connections
-    Navigation: Manage → Data Connections
-
-    Purpose:
-    Visibility into Defender EASM data connections, sources, and ingestion state.
-    This dashboard reflects control-plane configuration and ingestion telemetry
-    as collected by the Splunk modular input.
-
-    NOTE:
-    Defender EASM does not expose a single “data connections” REST object.
-    This dashboard is driven from normalized connection / source metadata
-    collected during workspace discovery and ingestion.
+defender_easm_data_connections.xml
+Microsoft Defender EASM for Splunk App
+Manage → Data Connections
 -->
 
-<dashboard version="1.1">
-  <label>🔌 Defender EASM – Data Connections</label>
-  <description>
-    Visibility into configured data sources, ingestion state, and collection health
-    for Microsoft Defender External Attack Surface Management.
-  </description>
+<dashboard>
+  <label>Data Connections</label>
+  <description>Visibility into Microsoft Defender EASM data connections, ingestion state, frequency, and operational health.</description>
 
   <!-- ========================= -->
-  <!-- ROW 1: HIGH-LEVEL METRICS -->
+  <!-- GLOBAL TIME PICKER        -->
+  <!-- ========================= -->
+  <fieldset submitButton="false">
+    <input type="time">
+      <label>Time Range</label>
+      <default>
+        <earliest>-30d@d</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+
+  <!-- ========================= -->
+  <!-- KPI ROW                   -->
   <!-- ========================= -->
   <row>
-
     <panel>
-      <title>Total Data Connections</title>
       <single>
+        <title>Total Data Connections</title>
         <search>
           <query>
             index=security_defender_easm sourcetype=defender:easm:data_connections
-            | stats dc(connection_id)
+            | stats dc(connection_id) AS total
           </query>
         </search>
         <option name="unit">connections</option>
@@ -42,12 +39,79 @@
     </panel>
 
     <panel>
-      <title>Connection Status</title>
+      <single>
+        <title>Connected</title>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:data_connections status=Connected
+            | stats count
+          </query>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <single>
+        <title>Disconnected</title>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:data_connections status=Disconnected
+            | stats count
+          </query>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <single>
+        <title>Errors (Last 24h)</title>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:data_connections error=*
+            | where _time &gt; relative_time(now(), "-24h")
+            | stats count
+          </query>
+        </search>
+      </single>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- CONNECTION STATUS TABLE   -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Data Connection Inventory</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:data_connections
+            | stats latest(status) AS status
+                    latest(type) AS type
+                    latest(frequency) AS frequency
+                    latest(content) AS content
+                    latest(workspace_id) AS workspace_id
+                    latest(created_time) AS created
+                    latest(updated_time) AS updated
+                    by connection_name
+          </query>
+        </search>
+        <option name="count">20</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- INGESTION FREQUENCY       -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Ingestion Frequency Distribution</title>
       <chart>
         <search>
           <query>
             index=security_defender_easm sourcetype=defender:easm:data_connections
-            | stats count by connection_status
+            | stats count by frequency
           </query>
         </search>
         <option name="charting.chart">pie</option>
@@ -55,85 +119,54 @@
     </panel>
 
     <panel>
-      <title>Connection Type</title>
+      <title>Connection Types</title>
       <chart>
         <search>
           <query>
             index=security_defender_easm sourcetype=defender:easm:data_connections
-            | stats count by connection_type
+            | stats count by type
           </query>
         </search>
         <option name="charting.chart">bar</option>
       </chart>
     </panel>
-
   </row>
 
   <!-- ========================= -->
-  <!-- ROW 2: INGESTION HEALTH   -->
+  <!-- OPERATIONAL TIMELINE      -->
   <!-- ========================= -->
   <row>
-
     <panel>
-      <title>Ingestion State</title>
+      <title>Connection State Changes Over Time</title>
       <chart>
         <search>
           <query>
             index=security_defender_easm sourcetype=defender:easm:data_connections
-            | stats count by ingestion_state
+            | timechart span=1d count by status
           </query>
         </search>
-        <option name="charting.chart">column</option>
-        <option name="charting.axisTitleX.text">State</option>
-        <option name="charting.axisTitleY.text">Count</option>
+        <option name="charting.chart">line</option>
       </chart>
     </panel>
+  </row>
 
+  <!-- ========================= -->
+  <!-- TROUBLESHOOTING           -->
+  <!-- ========================= -->
+  <row>
     <panel>
-      <title>Last Successful Ingestion</title>
+      <title>Recent Connection Errors</title>
       <table>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:data_connections
-            | stats max(last_successful_ingest) as last_ingest by connection_name
-            | sort - last_ingest
+            index=security_defender_easm sourcetype=defender:easm:data_connections error=*
+            | table _time connection_name status error message
+            | sort -_time
           </query>
         </search>
         <option name="count">10</option>
       </table>
     </panel>
-
-  </row>
-
-  <!-- ========================= -->
-  <!-- ROW 3: CONNECTION DETAIL  -->
-  <!-- ========================= -->
-  <row>
-
-    <panel>
-      <title>Data Connection Inventory</title>
-      <table>
-        <search>
-          <query>
-            index=security_defender_easm sourcetype=defender:easm:data_connections
-            | table
-                connection_name
-                connection_type
-                connection_status
-                ingestion_state
-                last_successful_ingest
-                last_error
-                subscription_id
-                resource_group
-                workspace_name
-            | sort connection_name
-          </query>
-        </search>
-        <option name="count">20</option>
-        <option name="wrap">true</option>
-      </table>
-    </panel>
-
   </row>
 
 </dashboard>
