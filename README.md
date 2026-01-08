@@ -68,6 +68,65 @@ External Attack Surface Management is cloud-based and applies to:
 
 ---
 
+## 📊 Dashboards
+
+| Dashboard | Description |
+|----------|-------------|
+| 🧭 Overview | Executive view of external attack surface |
+| 🌐 Assets | External asset inventory |
+| ⚠️ Findings | Exposure findings |
+| 🔎 Discovery | New and changed asset discovery |
+| 🧬 Relationships | Asset relationship mapping |
+| 📈 Trending | Asset and exposure trends |
+| ⚙️ Operations | Ingestion metrics |
+| ❤️ Health | API and collection health |
+
+---
+
+## 🧾 Sourcetypes
+
+| Sourcetype | Description |
+|-----------|-------------|
+| `defender:easm:assets` | External assets |
+| `defender:easm:inventory` | Inventory metadata |
+| `defender:easm:findings` | Exposure findings |
+| `defender:easm:discovery` | Discovery events |
+| `defender:easm:relationships` | Asset relationships |
+| `defender:easm:health` | Platform health |
+
+---
+
+## 📦 Requirements
+
+- Splunk Enterprise or Splunk Cloud
+- Python 3.x (Splunk bundled)
+- Microsoft Defender EASM subscription
+- Azure AD application credentials
+
+---
+
+## 🛠️ Troubleshooting
+
+- Verify API credentials
+- Test API connectivity
+- Review Splunk internal logs
+- Confirm index permissions
+
+---
+
+## 📚 Support
+
+- Microsoft Defender EASM API Docs:  
+  https://learn.microsoft.com/en-us/rest/api/defenderforeasm/
+- Splunk Documentation:  
+  https://docs.splunk.com
+
+---
+
+## 📜 License
+
+Apache License 2.0
+
 ## Directory Structure
 
 Microsoft_Defender_EASM_For_Splunk_App/
