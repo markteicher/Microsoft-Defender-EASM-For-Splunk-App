@@ -1,0 +1,64 @@
+<!--
+File: defender_easm_labels.xml
+Location: default/data/ui/views/
+Purpose: Manage → Labels
+-->
+
+<dashboard version="1.1">
+  <label>Labels</label>
+
+  <description>
+    View and manage Microsoft Defender EASM labels applied to discovered assets.
+  </description>
+
+  <row>
+    <panel>
+      <title>Label Inventory</title>
+
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm
+            sourcetype=defender:easm:labels
+            | stats
+                count as asset_count
+              by
+                label_name
+                label_type
+                label_source
+                created_date
+          </query>
+          <earliest>-30d</earliest>
+          <latest>now</latest>
+        </search>
+
+        <option name="count">20</option>
+        <option name="drilldown">row</option>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">true</option>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Label Distribution</title>
+
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm
+            sourcetype=defender:easm:labels
+            | stats count by label_type
+          </query>
+          <earliest>-30d</earliest>
+          <latest>now</latest>
+        </search>
+
+        <option name="charting.chart">pie</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+
+</dashboard>
