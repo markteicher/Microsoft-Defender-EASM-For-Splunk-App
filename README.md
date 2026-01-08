@@ -96,30 +96,31 @@ Microsoft Defender EASM discovers and tracks the following asset classes:
 ### ❓ Help
 - **Support & Troubleshooting**
 
-## 📊 Overview
 
-### 🔢 Top Summary Metrics
+## 📊 Overview Dashboard
 
-| Position | Metric |
-|--------|--------|
-| 1 | **Count of Domains** |
-| 2 | **Count of Hosts** |
-| 3 | **Count of Pages** |
-| 4 | **Count of SSL Certificates** |
-| 5 | **Count of ASNs** |
-| 6 | **Count of IP Blocks** |
-| 7 | **Count of IP Addresses** |
-| 8 | **Count of Contacts** |
+### 🔢 Asset Inventory Summary
+
+| Metric | Description |
+|------|-------------|
+| **Domains** | Count of discovered domains |
+| **Hosts** | Count of discovered hosts |
+| **Pages** | Count of discovered web pages |
+| **SSL Certificates** | Count of discovered SSL certificates |
+| **ASNs** | Count of associated Autonomous System Numbers |
+| **IP Blocks** | Count of discovered IP blocks |
+| **IP Addresses** | Count of discovered IP addresses |
+| **Contacts** | Count of discovered WHOIS contacts |
 
 ---
 
 ### 📌 Attack Surface Insights
 
-| Priority Level | Metric |
-|---------------|--------|
-| **High Priority** | Count of High Priority |
-| **Medium Priority** | Count of Medium Priority |
-| **Low Priority** | Count of Low Priority |
+| Priority Level | Description |
+|---------------|-------------|
+| **High Priority** | High-risk attack surface findings requiring immediate attention |
+| **Medium Priority** | Moderate-risk exposure findings |
+| **Low Priority** | Informational or low-risk exposure findings |
 
 ## Deployment
 
