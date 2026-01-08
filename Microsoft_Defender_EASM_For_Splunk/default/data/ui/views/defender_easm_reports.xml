@@ -1,0 +1,123 @@
+<!-- defender_easm_reports.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- Dashboard: Reports -->
+
+<dashboard version="1.1">
+  <label>Reports</label>
+  <description>
+    Inventory and visibility of Microsoft Defender EASM reports collected
+    from the data-plane Reports API.
+  </description>
+
+  <!-- Summary -->
+  <row>
+    <panel>
+      <title>Reports Summary</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:report
+            | stats
+                count as total_reports
+                by report_type
+          </query>
+          <earliest>-30d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">10</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Report Inventory -->
+  <row>
+    <panel>
+      <title>Report Inventory</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:report
+            | table
+                report_id
+                report_name
+                report_type
+                status
+                created_time
+                completed_time
+                created_by
+            | sort - created_time
+          </query>
+          <earliest>-90d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">20</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Reports by Type -->
+  <row>
+    <panel>
+      <title>Reports by Type</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:report
+            | stats count by report_type
+            | sort - count
+          </query>
+          <earliest>-90d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Report Status -->
+  <row>
+    <panel>
+      <title>Report Status Distribution</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:report
+            | stats count by status
+            | sort - count
+          </query>
+          <earliest>-90d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.axisTitleX.text">Status</option>
+        <option name="charting.axisTitleY.text">Report Count</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Recent Activity -->
+  <row>
+    <panel>
+      <title>Recent Report Activity</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:report
+            | sort - created_time
+            | table
+                created_time
+                report_name
+                report_type
+                status
+                created_by
+          </query>
+          <earliest>-14d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">15</option>
+      </table>
+    </panel>
+  </row>
+
+</dashboard>
