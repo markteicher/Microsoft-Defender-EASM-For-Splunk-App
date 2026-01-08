@@ -1,0 +1,167 @@
+<!--
+    defender_easm_task_manager.xml
+    Microsoft Defender EASM for Splunk App
+
+    Dashboard: Task Manager
+    Navigation: Manage → Task Manager
+
+    Purpose:
+    Visibility into Defender EASM background tasks such as discovery runs,
+    inventory updates, enrichment jobs, and control-plane operations.
+
+    This dashboard reflects task execution telemetry collected by the Splunk
+    modular input and mapped from Defender EASM workspace activity.
+-->
+
+<dashboard version="1.1">
+  <label>🧠 Defender EASM – Task Manager</label>
+  <description>
+    Monitor Defender EASM background tasks, execution status, timing,
+    and failure conditions.
+  </description>
+
+  <!-- ========================= -->
+  <!-- ROW 1: TASK SUMMARY KPIs  -->
+  <!-- ========================= -->
+  <row>
+
+    <panel>
+      <title>Total Tasks</title>
+      <single>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:tasks
+            | stats count
+          </query>
+        </search>
+        <option name="unit">tasks</option>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Task Status</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:tasks
+            | stats count by task_status
+          </query>
+        </search>
+        <option name="charting.chart">pie</option>
+      </chart>
+    </panel>
+
+    <panel>
+      <title>Task Type</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:tasks
+            | stats count by task_type
+          </query>
+        </search>
+        <option name="charting.chart">bar</option>
+      </chart>
+    </panel>
+
+  </row>
+
+  <!-- ========================= -->
+  <!-- ROW 2: EXECUTION TIMING   -->
+  <!-- ========================= -->
+  <row>
+
+    <panel>
+      <title>Average Task Duration</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:tasks
+            | eval duration_sec = task_duration_ms / 1000
+            | stats avg(duration_sec) as avg_duration by task_type
+          </query>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.axisTitleX.text">Task Type</option>
+        <option name="charting.axisTitleY.text">Avg Duration (seconds)</option>
+      </chart>
+    </panel>
+
+    <panel>
+      <title>Tasks Over Time</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:tasks
+            | timechart span=1h count
+          </query>
+        </search>
+        <option name="charting.chart">line</option>
+      </chart>
+    </panel>
+
+  </row>
+
+  <!-- ========================= -->
+  <!-- ROW 3: FAILED TASKS       -->
+  <!-- ========================= -->
+  <row>
+
+    <panel>
+      <title>Recent Failed Tasks</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:tasks
+            task_status=FAILED
+            | table
+                _time
+                task_name
+                task_type
+                task_status
+                error_code
+                error_message
+                workspace_name
+            | sort - _time
+          </query>
+        </search>
+        <option name="count">10</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+
+  </row>
+
+  <!-- ========================= -->
+  <!-- ROW 4: TASK INVENTORY     -->
+  <!-- ========================= -->
+  <row>
+
+    <panel>
+      <title>Task Inventory</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:tasks
+            | table
+                task_id
+                task_name
+                task_type
+                task_status
+                created_time
+                started_time
+                completed_time
+                task_duration_ms
+                initiated_by
+                workspace_name
+            | sort - created_time
+          </query>
+        </search>
+        <option name="count">20</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+
+  </row>
+
+</dashboard>
