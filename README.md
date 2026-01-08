@@ -64,6 +64,31 @@ Microsoft Defender EASM discovers and tracks the following asset classes:
 
 ---
 
+## 📊 Overview
+
+### 🔢 Top Summary Metrics
+
+| Position | Metric |
+|--------|--------|
+| 1 | **Count of Domains** |
+| 2 | **Count of Hosts** |
+| 3 | **Count of Pages** |
+| 4 | **Count of SSL Certificates** |
+| 5 | **Count of ASNs** |
+| 6 | **Count of IP Blocks** |
+| 7 | **Count of IP Addresses** |
+| 8 | **Count of Contacts** |
+
+---
+
+### 📌 Attack Surface Insights
+
+| Priority Level | Metric |
+|---------------|--------|
+| **High Priority** | Count of High Priority |
+| **Medium Priority** | Count of Medium Priority |
+| **Low Priority** | Count of Low Priority |
+
 ## Deployment
 
 ### Step 1: Install the App
