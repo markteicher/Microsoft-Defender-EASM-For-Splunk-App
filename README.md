@@ -154,6 +154,8 @@ Microsoft Defender EASM discovers and tracks the following asset classes:
 | **Medium Priority** | Moderate-risk exposure findings |
 | **Low Priority** | Informational or low-risk exposure findings |
 
+---
+
 ## Deployment
 
 ### Step 1: Install the App
