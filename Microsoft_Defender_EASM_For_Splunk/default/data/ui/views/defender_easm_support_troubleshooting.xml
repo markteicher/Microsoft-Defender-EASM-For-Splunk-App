@@ -1,0 +1,197 @@
+<!--
+    defender_easm_support_troubleshooting.xml
+    Microsoft Defender EASM for Splunk App
+
+    Navigation: Help → Support & Troubleshooting
+
+    Purpose:
+    Centralized operational support dashboard for administrators and analysts.
+    Provides visibility into ingestion health, API connectivity, errors,
+    authentication issues, and common troubleshooting workflows.
+
+    Scope:
+    - No CIM alignment
+    - No contextual tooltips
+    - Splunk Classic XML only
+-->
+
+<dashboard version="1.1">
+  <label>❓ Support &amp; Troubleshooting</label>
+  <description>
+    Operational troubleshooting, ingestion health, and API diagnostics for
+    Microsoft Defender EASM data collection.
+  </description>
+
+  <!-- ========================= -->
+  <!-- ROW 1: PLATFORM HEALTH    -->
+  <!-- ========================= -->
+  <row>
+
+    <panel>
+      <title>API Connectivity Status</title>
+      <single>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:health
+            | stats latest(api_status) as status
+          </query>
+        </search>
+        <option name="unit">status</option>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Last Successful Collection</title>
+      <single>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:health
+            | stats latest(_time) as last_collection
+            | eval last_collection=strftime(last_collection, "%Y-%m-%d %H:%M:%S")
+          </query>
+        </search>
+        <option name="unit">UTC</option>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Records Ingested (24h)</title>
+      <single>
+        <search>
+          <query>
+            index=security_defender_easm earliest=-24h
+            | stats count
+          </query>
+        </search>
+        <option name="unit">events</option>
+      </single>
+    </panel>
+
+  </row>
+
+  <!-- ========================= -->
+  <!-- ROW 2: INGESTION ERRORS   -->
+  <!-- ========================= -->
+  <row>
+
+    <panel>
+      <title>Ingestion Errors by Type</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:error
+            | stats count by error_type
+          </query>
+        </search>
+        <option name="charting.chart">pie</option>
+      </chart>
+    </panel>
+
+    <panel>
+      <title>Errors Over Time</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:error
+            | timechart span=1h count
+          </query>
+        </search>
+        <option name="charting.chart">line</option>
+      </chart>
+    </panel>
+
+  </row>
+
+  <!-- ========================= -->
+  <!-- ROW 3: AUTHENTICATION     -->
+  <!-- ========================= -->
+  <row>
+
+    <panel>
+      <title>Authentication Failures</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:error
+            error_category=authentication
+            | table
+                _time
+                error_code
+                error_message
+                tenant_id
+                workspace_name
+            | sort - _time
+          </query>
+        </search>
+        <option name="count">10</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+
+  </row>
+
+  <!-- ========================= -->
+  <!-- ROW 4: API & RATE LIMITS  -->
+  <!-- ========================= -->
+  <row>
+
+    <panel>
+      <title>API Errors (HTTP Codes)</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:error
+            | stats count by http_status
+          </query>
+        </search>
+        <option name="charting.chart">column</option>
+      </chart>
+    </panel>
+
+    <panel>
+      <title>Rate Limit Events</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:error
+            error_category=rate_limit
+            | table
+                _time
+                http_status
+                retry_after
+                endpoint
+            | sort - _time
+          </query>
+        </search>
+        <option name="count">10</option>
+      </table>
+    </panel>
+
+  </row>
+
+  <!-- ========================= -->
+  <!-- ROW 5: SUPPORT QUICK LINKS -->
+  <!-- ========================= -->
+  <row>
+
+    <panel>
+      <title>Support Resources</title>
+      <html>
+        <![CDATA[
+        <ul>
+          <li><b>Microsoft Defender EASM Docs:</b>
+            https://learn.microsoft.com/defender/easm</li>
+          <li><b>REST API Reference:</b>
+            https://learn.microsoft.com/en-us/rest/api/defenderforeasm</li>
+          <li><b>Azure Service Health:</b>
+            https://status.azure.com</li>
+          <li><b>Splunk Internal Logs:</b>
+            Search <code>index=_internal source=*defender_easm*</code></li>
+        </ul>
+        ]]>
+      </html>
+    </panel>
+
+  </row>
+
+</dashboard>
