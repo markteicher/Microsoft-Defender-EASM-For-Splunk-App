@@ -1,0 +1,82 @@
+<!-- default/data/ui/views/defender_easm_workspaces.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- Control Plane – Workspaces -->
+
+<dashboard version="1.1" theme="light">
+  <label>Workspaces</label>
+
+  <description>
+    Microsoft Defender EASM workspaces discovered via the control plane API.
+    Displays workspace metadata, provisioning state, and system ownership details.
+  </description>
+
+  <!-- ========================= -->
+  <!-- Workspace Summary -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Workspace Provisioning States</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:workspaces
+            | stats count by properties.provisioningState
+          </query>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- Workspace Inventory -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>EASM Workspaces</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:workspaces
+            | table
+                name
+                location
+                properties.provisioningState
+                systemData.createdBy
+                systemData.createdByType
+                systemData.createdAt
+                systemData.lastModifiedBy
+                systemData.lastModifiedAt
+                id
+          </query>
+        </search>
+        <option name="wrap">true</option>
+        <option name="count">20</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- Workspace Geography -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Workspaces by Location</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:workspaces
+            | stats count by location
+            | sort - count
+          </query>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.axisTitleX.text">Azure Region</option>
+        <option name="charting.axisTitleY.text">Workspace Count</option>
+        <option name="legend.placement">none</option>
+      </chart>
+    </panel>
+  </row>
+
+</dashboard>
