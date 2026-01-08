@@ -64,6 +64,38 @@ Microsoft Defender EASM discovers and tracks the following asset classes:
 
 ---
 
+## 🧭 Navigation Structure
+
+### 📁 General
+- **Inventory**
+
+---
+
+### 📊 Dashboards
+- **Attack Surface Summary**
+- **Security Posture**
+- **GDPR Compliance**
+- **OWASP Top 10**
+
+---
+
+### 🛠️ Manage
+- **Discovery**
+- **Labels**
+- **Billable Assets**
+- **Data Connections**
+- **Task Manager**
+
+---
+
+### 👥 Users
+- **User Permissions**
+
+---
+
+### ❓ Help
+- **Support & Troubleshooting**
+
 ## 📊 Overview
 
 ### 🔢 Top Summary Metrics
