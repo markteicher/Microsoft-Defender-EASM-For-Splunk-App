@@ -1,64 +1,118 @@
 <!--
-File: defender_easm_labels.xml
-Location: default/data/ui/views/
-Purpose: Manage → Labels
+    defender_easm_labels.xml
+    Microsoft Defender EASM for Splunk App
+
+    Dashboard: Labels
+    Source: Defender EASM Control Plane API (Labels)
+    Endpoint:
+      GET /providers/Microsoft.Easm/workspaces/{workspace}/labels
 -->
 
 <dashboard version="1.1">
-  <label>Labels</label>
-
+  <label>🏷️ Defender EASM – Labels</label>
   <description>
-    View and manage Microsoft Defender EASM labels applied to discovered assets.
+    Inventory of labels defined in Microsoft Defender External Attack Surface Management.
+    Data sourced directly from the Defender EASM Control Plane Labels API.
   </description>
 
+  <!-- ========================= -->
+  <!-- ROW 1: KPI PANELS         -->
+  <!-- ========================= -->
   <row>
-    <panel>
-      <title>Label Inventory</title>
 
-      <table>
+    <panel>
+      <title>Total Labels</title>
+      <single>
         <search>
           <query>
-            index=security_defender_easm
-            sourcetype=defender:easm:labels
-            | stats
-                count as asset_count
-              by
-                label_name
-                label_type
-                label_source
-                created_date
+            index=security_defender_easm sourcetype=defender:easm:labels
+            | stats count
           </query>
-          <earliest>-30d</earliest>
-          <latest>now</latest>
         </search>
-
-        <option name="count">20</option>
-        <option name="drilldown">row</option>
-        <option name="wrap">true</option>
-        <option name="rowNumbers">true</option>
-      </table>
+        <option name="unit">labels</option>
+      </single>
     </panel>
-  </row>
 
-  <row>
     <panel>
-      <title>Label Distribution</title>
-
+      <title>Provisioning State</title>
       <chart>
         <search>
           <query>
-            index=security_defender_easm
-            sourcetype=defender:easm:labels
-            | stats count by label_type
+            index=security_defender_easm sourcetype=defender:easm:labels
+            | stats count by provisioning_state
           </query>
-          <earliest>-30d</earliest>
-          <latest>now</latest>
         </search>
-
         <option name="charting.chart">pie</option>
-        <option name="charting.legend.placement">right</option>
       </chart>
     </panel>
+
+    <panel>
+      <title>Created By Type</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:labels
+            | stats count by created_by_type
+          </query>
+        </search>
+        <option name="charting.chart">bar</option>
+      </chart>
+    </panel>
+
+  </row>
+
+  <!-- ========================= -->
+  <!-- ROW 2: LABEL COLORS       -->
+  <!-- ========================= -->
+  <row>
+
+    <panel>
+      <title>Labels by Color</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:labels
+            | stats count by label_color
+            | sort - count
+          </query>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.axisTitleX.text">Label Color</option>
+        <option name="charting.axisTitleY.text">Count</option>
+      </chart>
+    </panel>
+
+  </row>
+
+  <!-- ========================= -->
+  <!-- ROW 3: LABEL TABLE        -->
+  <!-- ========================= -->
+  <row>
+
+    <panel>
+      <title>Label Inventory</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:labels
+            | table
+                label_display_name
+                label_color
+                provisioning_state
+                created_by_type
+                created_at
+                last_modified_at
+                subscription_id
+                resource_group
+                workspace_name
+            | sort label_display_name
+          </query>
+        </search>
+        <option name="count">20</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+
   </row>
 
 </dashboard>
