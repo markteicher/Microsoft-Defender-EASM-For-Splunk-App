@@ -2,11 +2,26 @@
 
 ## Overview
 
-Microsoft Defender External Attack Surface Management (EASM) provides continuous discovery, inventory, classification, and risk analysis of an organization’s external-facing assets.
+Microsoft Defender External Attack Surface Management (EASM) for Splunk provides full visibility into your organization’s externally exposed digital footprint using the Microsoft Defender EASM REST APIs.
 
-The **Microsoft Defender EASM for Splunk App** is a full Splunk application that ingests Defender EASM data via the Microsoft REST APIs and enables security teams to monitor external assets, exposure findings, discovery activity, relationships, and platform health directly within Splunk.
+This Splunk App enables security teams to **discover, monitor, analyze, and operationalize external attack surface data** directly in Splunk—without relying on the Defender portal UI.
 
-This app eliminates the need to rely on the Defender portal UI by operationalizing EASM data for investigation, trending, and correlation inside Splunk.
+The app is designed for **security engineering and operational teams**, not marketing dashboards, and follows standard Splunk AppInspect, directory, and deployment practices.
+
+---
+
+## Supported Asset Types
+
+Microsoft Defender EASM discovers and tracks the following asset classes:
+
+- Domains
+- Hosts
+- Pages
+- IP Addresses
+- IP Blocks
+- Autonomous System Numbers (ASNs)
+- SSL Certificates
+- WHOIS Contacts
 
 ---
 
@@ -15,84 +30,96 @@ This app eliminates the need to rely on the Defender portal UI by operationalizi
 ### 🛡️ Core Capabilities
 
 | Feature | Description |
-|--------|------------|
-| 🌐 External Asset Inventory | Full visibility into discovered internet-facing assets |
-| ⚠️ Exposure Findings | Ingest and analyze exposure findings |
-| 🔍 Asset Discovery | Track newly discovered and changed assets |
-| 🔗 Relationship Mapping | Asset-to-asset relationship intelligence |
-| 📊 Exposure Context | Inventory metadata and classification |
-| ❤️ Platform Health | API and ingestion health monitoring |
+|------|-------------|
+| 🌐 Asset Discovery | Continuous discovery of internet-facing assets |
+| 🧭 Asset Inventory | Unified inventory across all asset types |
+| 🔎 Exposure Visibility | Identify exposed infrastructure and services |
+| 🧩 Attribution Context | Asset ownership and relationship mapping |
+| 🕵️ Change Tracking | Detect newly discovered or modified assets |
+| 🧾 Evidence Preservation | Raw API data retained for auditability |
+
+---
 
 ### 📈 Analytics & Visibility
 
 | Feature | Description |
-|--------|------------|
-| 📉 Exposure Trending | Exposure and asset trends over time |
-| 🧭 Asset Relationships | Understand asset dependencies |
-| 🧠 Inventory Enrichment | Metadata-driven asset context |
-| ⏱️ Discovery Velocity | New and changed asset discovery rates |
-| 📊 Executive Overview | External attack surface summary |
+|------|-------------|
+| 📊 Asset Growth Trends | Track attack surface expansion over time |
+| 🔄 Asset Lifecycle | New, existing, and removed asset tracking |
+| 🧱 Infrastructure Mapping | Domain → host → IP → ASN relationships |
+| 🔐 Certificate Monitoring | SSL certificate inventory and expiration |
+| 🌍 Geographic Analysis | Country and ASN-based exposure insights |
+| 🧠 Contextual Pivoting | Pivot across assets, ownership, and evidence |
+
+---
 
 ### ⚙️ Operational Excellence
 
 | Feature | Description |
-|--------|------------|
-| 📊 Ingestion Metrics | API calls, record counts, and rates |
-| 💓 Collection Health | Data freshness and API connectivity |
-| ✅ Configuration Validation | Automated setup validation |
-| 🕐 Scheduled Health Checks | Periodic API and token validation |
-| 📋 API Log Visibility | Full API activity logging |
+|------|-------------|
+| 📡 Modular Input Framework | Secure API-based ingestion |
+| 🔑 API Key Management | Encrypted credential storage |
+| 🌐 Proxy Support | Enterprise proxy compatibility |
+| 🩺 Health Monitoring | API reachability and ingestion status |
+| 📋 Operational Logging | Full API and ingestion traceability |
+| ⏱️ Rate-Limit Awareness | Safe polling and throttling handling |
 
 ---
 
-## Installation
+## Deployment
 
-### Step 1: Deploy the App
+### Step 1: Install the App
 
-1. Download the `Microsoft_Defender_EASM_For_Splunk_App-1.0.0.tar.gz`
-2. In Splunk Web, navigate to **Apps → Manage Apps**
-3. Click **Install app from file**
-4. Upload the `.tar.gz` file
+1. Download `Microsoft_Defender_EASM_For_Splunk_App-1.0.0.tar.gz`
+2. In Splunk Web, go to **Apps → Manage Apps**
+3. Select **Install app from file**
+4. Upload the package
 5. Restart Splunk if prompted
+
+---
 
 ### Step 2: Configure the App
 
-1. Navigate to **Apps → Microsoft Defender EASM → Setup**
-2. Configure the following settings
+Navigate to **Apps → Microsoft Defender EASM → Setup**
 
 #### API Configuration
-
-- **Azure Tenant ID**
-- **Azure Client ID**
-- **Azure Client Secret**
-- **API Base URL**: https://api.securitycenter.microsoft.com
-- **Verify SSL**
+- **Defender EASM API Key**
+- **API Base URL**  
+  `https://api.defender.microsoft.com`
 - **Request Timeout**
+- **Verify SSL Certificates**
 
 #### Proxy Configuration (Optional)
-
-- **Use Proxy**
-- **Proxy URL**
-- **Proxy Username**
-- **Proxy Password**
+- Enable Proxy
+- Proxy URL
+- Proxy Username
+- Proxy Password
 
 #### Data Inputs
-
 - Assets
-- Inventory Metadata
-- Exposure Findings
-- Discovery Events
-- Relationships
-- Platform Health
+- Domains
+- Hosts
+- Pages
+- IP Addresses
+- IP Blocks
+- ASNs
+- SSL Certificates
+- WHOIS Contacts
+
+---
 
 ### Step 3: Validate Configuration
 
-- Test API credentials
+- Test API connectivity
+- Validate authentication
+- Verify permissions
 - Automatic validation on first launch
+
+---
 
 ### Step 4: Verify Data Collection
 
-Run this search:
+Run the following search in Splunk:
 
     index=security_defender_easm sourcetype=defender:easm:*
     | stats count by sourcetype
@@ -102,15 +129,15 @@ Run this search:
 ## 📊 Dashboards
 
 | Dashboard | Description |
-|----------|-------------|
-| 🧭 Overview | Executive view of external attack surface |
-| 🌐 Assets | External asset inventory |
-| ⚠️ Findings | Exposure findings |
-| 🔎 Discovery | New and changed asset discovery |
-| 🔗 Relationships | Asset relationship mapping |
-| 📈 Trending | Asset and exposure trends |
-| ⚙️ Operations | Ingestion metrics |
-| ❤️ Health | API and collection health |
+|---------|-------------|
+| 🌐 Overview | High-level external exposure summary |
+| 🧭 Asset Inventory | Complete asset inventory by type |
+| 🧱 Infrastructure Map | Domain, host, IP, ASN relationships |
+| 🔐 Certificates | SSL certificate monitoring |
+| 🌍 Geography | Asset distribution by country and ASN |
+| 📈 Trends | Asset growth and change trends |
+| ⚙️ Operations | Ingestion metrics and health |
+| ❤️ Health | API and data freshness monitoring |
 
 ---
 
@@ -118,12 +145,16 @@ Run this search:
 
 | Sourcetype | Description |
 |-----------|-------------|
-| defender:easm:assets | External assets |
-| defender:easm:inventory | Inventory metadata |
-| defender:easm:findings | Exposure findings |
-| defender:easm:discovery | Discovery events |
-| defender:easm:relationships | Asset relationships |
-| defender:easm:health | Platform health |
+| `defender:easm:assets` | Unified asset records |
+| `defender:easm:domains` | Domain assets |
+| `defender:easm:hosts` | Host assets |
+| `defender:easm:pages` | Web page assets |
+| `defender:easm:ip_addresses` | IP address assets |
+| `defender:easm:ip_blocks` | IP block assets |
+| `defender:easm:asns` | Autonomous System Numbers |
+| `defender:easm:certificates` | SSL certificates |
+| `defender:easm:whois` | WHOIS contact data |
+| `defender:easm:health` | Collection health |
 
 ---
 
@@ -131,25 +162,52 @@ Run this search:
 
 - Splunk Enterprise or Splunk Cloud
 - Python 3.x (Splunk bundled)
-- Microsoft Defender EASM subscription
-- Azure AD application credentials
+- Microsoft Defender EASM API Access
+- Network access to Defender EASM APIs
+
+---
+
+## ✅ AppInspect Compliance
+
+- Proper Splunk directory structure
+- No hardcoded credentials
+- Inputs disabled by default
+- Encrypted credential storage
+- `app.manifest` included
+- Apache 2.0 License
+- Setup-based configuration
 
 ---
 
 ## 🛠️ Troubleshooting
 
-- Verify Azure AD credentials
+### No Data Appearing
+- Verify API key permissions
 - Test API connectivity
-- Review Splunk internal logs
-- Confirm index permissions
+- Confirm inputs are enabled
+- Check Splunk internal logs
+
+### API Errors
+- Validate authentication scope
+- Check rate limits
+- Confirm Defender EASM service availability
+
+### Proxy Issues
+- Validate proxy URL and credentials
+- Confirm SSL inspection compatibility
+- Test proxy connectivity from Splunk
 
 ---
 
-## 📚 Support
+## 📚 References
 
-- Microsoft Defender EASM API Documentation:  
+- Defender EASM REST API  
   https://learn.microsoft.com/en-us/rest/api/defenderforeasm/
-- Splunk Documentation:  
+
+- Azure Python SDK (Preview)  
+  https://learn.microsoft.com/en-us/python/api/overview/azure/defender-easm-readme
+
+- Splunk Documentation  
   https://docs.splunk.com
 
 ---
