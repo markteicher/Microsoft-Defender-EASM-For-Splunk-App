@@ -1,1 +1,42 @@
-test
+<!-- default/data/ui/nav/default.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- Primary navigation structure -->
+
+<nav search_view="search">
+  
+  <!-- Overview -->
+  <view name="defender_easm_overview" label="Overview Dashboard" />
+
+  <!-- General -->
+  <collection label="General">
+    <view name="defender_easm_inventory" label="Inventory" />
+  </collection>
+
+  <!-- Dashboards -->
+  <collection label="Dashboards">
+    <view name="defender_easm_attack_surface_summary" label="Attack Surface Summary" />
+    <view name="defender_easm_security_posture" label="Security Posture" />
+    <view name="defender_easm_gdpr_compliance" label="GDPR Compliance" />
+    <view name="defender_easm_owasp_top10" label="OWASP Top 10" />
+  </collection>
+
+  <!-- Manage -->
+  <collection label="Manage">
+    <view name="defender_easm_discovery" label="Discovery" />
+    <view name="defender_easm_labels" label="Labels" />
+    <view name="defender_easm_billable_assets" label="Billable Assets" />
+    <view name="defender_easm_data_connections" label="Data Connections" />
+    <view name="defender_easm_task_manager" label="Task Manager" />
+  </collection>
+
+  <!-- Users -->
+  <collection label="Users">
+    <view name="defender_easm_user_permissions" label="User Permissions" />
+  </collection>
+
+  <!-- Help -->
+  <collection label="Help">
+    <view name="defender_easm_support" label="Support &amp; Troubleshooting" />
+  </collection>
+
+</nav>
