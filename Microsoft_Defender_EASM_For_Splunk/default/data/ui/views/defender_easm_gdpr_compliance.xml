@@ -1,0 +1,130 @@
+<dashboard version="1.1">
+  <label>GDPR Compliance</label>
+
+  <!-- ========================= -->
+  <!-- GDPR Asset Exposure Summary -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Assets Handling Personal Data</title>
+      <single>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:assets dataClassification=personal
+            | stats count
+          </query>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Assets Exposed Publicly</title>
+      <single>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:assets exposure=public
+            | stats count
+          </query>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <title>High-Risk GDPR Findings</title>
+      <single>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:findings compliance=gdpr severity=high
+            | stats count
+          </query>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Critical GDPR Findings</title>
+      <single>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:findings compliance=gdpr severity=critical
+            | stats count
+          </query>
+        </search>
+      </single>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- GDPR Findings by Severity -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>GDPR Findings by Severity</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:findings compliance=gdpr
+            | stats count by severity
+          </query>
+        </search>
+        <option name="charting.chart">bar</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- GDPR Exposure by Asset Type -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>GDPR Exposure by Asset Type</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:findings compliance=gdpr
+            | stats count by assetType
+          </query>
+        </search>
+        <option name="charting.chart">pie</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- GDPR Risk Trend -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>GDPR Risk Trend</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:findings compliance=gdpr
+            | timechart span=1d count by severity
+          </query>
+        </search>
+        <option name="charting.chart">line</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- Top GDPR Risk Factors -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Top GDPR Risk Factors</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:findings compliance=gdpr
+            | stats count by findingType
+            | sort - count
+            | head 10
+          </query>
+        </search>
+      </table>
+    </panel>
+  </row>
+
+</dashboard>
