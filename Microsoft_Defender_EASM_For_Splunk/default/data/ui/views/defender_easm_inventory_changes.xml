@@ -1,0 +1,144 @@
+<!--
+File: defender_easm_inventory_changes.xml
+Location: default/data/ui/views/
+Purpose: General → Inventory Changes
+-->
+
+<dashboard version="1.1">
+  <label>Inventory Changes</label>
+  <description>
+    Track added and removed Microsoft Defender EASM assets over time.
+  </description>
+
+  <!-- KPI ROW -->
+  <row>
+    <panel>
+      <title>Total Inventory Changes</title>
+      <single>
+        <search>
+          <query>
+            index=security_defender_easm
+            sourcetype=defender:easm:inventory_changes
+            | stats count as total_changes
+          </query>
+          <earliest>-30d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="unit"></option>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Assets Added</title>
+      <single>
+        <search>
+          <query>
+            index=security_defender_easm
+            sourcetype=defender:easm:inventory_changes
+            action=added
+            | stats count as added
+          </query>
+          <earliest>-30d</earliest>
+          <latest>now</latest>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Assets Removed</title>
+      <single>
+        <search>
+          <query>
+            index=security_defender_easm
+            sourcetype=defender:easm:inventory_changes
+            action=removed
+            | stats count as removed
+          </query>
+          <earliest>-30d</earliest>
+          <latest>now</latest>
+        </search>
+      </single>
+    </panel>
+  </row>
+
+  <!-- DONUT / PIE -->
+  <row>
+    <panel>
+      <title>Change Distribution</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm
+            sourcetype=defender:easm:inventory_changes
+            | stats count by action
+          </query>
+          <earliest>-30d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+
+    <panel>
+      <title>Changes by Asset Type</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm
+            sourcetype=defender:easm:inventory_changes
+            | stats count by asset_type
+          </query>
+          <earliest>-30d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.legend.placement">none</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- TIME SERIES -->
+  <row>
+    <panel>
+      <title>Inventory Change Trend</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm
+            sourcetype=defender:easm:inventory_changes
+            | timechart span=1d count by action
+          </query>
+          <earliest>-30d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- DETAIL TABLE -->
+  <row>
+    <panel>
+      <title>Inventory Change Details</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm
+            sourcetype=defender:easm:inventory_changes
+            | eval change_date=strftime(_time,"%Y-%m-%d")
+            | stats count as change_count by change_date action asset_type
+            | sort - change_date
+          </query>
+          <earliest>-30d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">20</option>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">true</option>
+      </table>
+    </panel>
+  </row>
+
+</dashboard>
