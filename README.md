@@ -64,6 +64,38 @@ Microsoft Defender EASM discovers and tracks the following asset classes:
 
 ---
 
+## 📊 Dashboards
+
+| Dashboard | Description |
+|---------|-------------|
+| 🌐 Overview | High-level external exposure summary |
+| 🧭 Asset Inventory | Complete asset inventory by type |
+| 🧱 Infrastructure Map | Domain, host, IP, ASN relationships |
+| 🔐 Certificates | SSL certificate monitoring |
+| 🌍 Geography | Asset distribution by country and ASN |
+| 📈 Trends | Asset growth and change trends |
+| ⚙️ Operations | Ingestion metrics and health |
+| ❤️ Health | API and data freshness monitoring |
+
+---
+
+## 🧾 Sourcetypes
+
+| Sourcetype | Description |
+|-----------|-------------|
+| `defender:easm:assets` | Unified asset records |
+| `defender:easm:domains` | Domain assets |
+| `defender:easm:hosts` | Host assets |
+| `defender:easm:pages` | Web page assets |
+| `defender:easm:ip_addresses` | IP address assets |
+| `defender:easm:ip_blocks` | IP block assets |
+| `defender:easm:asns` | Autonomous System Numbers |
+| `defender:easm:certificates` | SSL certificates |
+| `defender:easm:whois` | WHOIS contact data |
+| `defender:easm:health` | Collection health |
+
+---
+
 ## 🧭 Navigation Structure
 
 ### 📁 General
@@ -182,37 +214,7 @@ Run the following search in Splunk:
 
 ---
 
-## 📊 Dashboards
 
-| Dashboard | Description |
-|---------|-------------|
-| 🌐 Overview | High-level external exposure summary |
-| 🧭 Asset Inventory | Complete asset inventory by type |
-| 🧱 Infrastructure Map | Domain, host, IP, ASN relationships |
-| 🔐 Certificates | SSL certificate monitoring |
-| 🌍 Geography | Asset distribution by country and ASN |
-| 📈 Trends | Asset growth and change trends |
-| ⚙️ Operations | Ingestion metrics and health |
-| ❤️ Health | API and data freshness monitoring |
-
----
-
-## 🧾 Sourcetypes
-
-| Sourcetype | Description |
-|-----------|-------------|
-| `defender:easm:assets` | Unified asset records |
-| `defender:easm:domains` | Domain assets |
-| `defender:easm:hosts` | Host assets |
-| `defender:easm:pages` | Web page assets |
-| `defender:easm:ip_addresses` | IP address assets |
-| `defender:easm:ip_blocks` | IP block assets |
-| `defender:easm:asns` | Autonomous System Numbers |
-| `defender:easm:certificates` | SSL certificates |
-| `defender:easm:whois` | WHOIS contact data |
-| `defender:easm:health` | Collection health |
-
----
 
 ## 📦 Requirements
 
