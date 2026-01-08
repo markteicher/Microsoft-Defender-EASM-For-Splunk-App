@@ -68,6 +68,45 @@ External Attack Surface Management is cloud-based and applies to:
 
 ---
 
+## Directory Structure
+
+Microsoft_Defender_EASM_For_Splunk_App/
+├── app.manifest
+├── LICENSE
+├── README.md
+├── default/
+│   ├── app.conf
+│   ├── inputs.conf
+│   ├── indexes.conf
+│   ├── props.conf
+│   ├── transforms.conf
+│   ├── macros.conf
+│   ├── restmap.conf
+│   ├── savedsearches.conf
+│   ├── web.conf
+│   └── data/ui/
+│       ├── nav/default.xml
+│       └── views/
+│           ├── setup.xml
+│           ├── easm_overview.xml
+│           ├── easm_assets.xml
+│           ├── easm_findings.xml
+│           ├── easm_discovery.xml
+│           ├── easm_relationships.xml
+│           ├── easm_trending.xml
+│           ├── easm_operations.xml
+│           └── easm_health.xml
+├── bin/
+│   ├── easm_input.py
+│   ├── easm_setup_handler.py
+│   └── easm_validation.py
+├── metadata/
+│   ├── default.meta
+│   └── local.meta
+└── static/
+    ├── appIcon.png
+    ├── appIcon_2x.png
+
 ## Installation
 
 ### Step 1: Deploy the App
@@ -118,3 +157,4 @@ External Attack Surface Management is cloud-based and applies to:
 ```spl
 index=security_defender_easm sourcetype=defender:easm:*
 | stats count by sourcetype
+
