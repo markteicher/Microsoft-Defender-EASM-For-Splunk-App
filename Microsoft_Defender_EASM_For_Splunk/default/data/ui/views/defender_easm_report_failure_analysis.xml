@@ -1,0 +1,100 @@
+<!-- defender_easm_report_failure_analysis.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- Dashboard: Report Failure Analysis -->
+
+<dashboard version="1.1">
+  <label>Report Failure Analysis</label>
+  <description>
+    Analysis of failed Microsoft Defender EASM report executions.
+    Provides visibility into failure rates, root causes, and recurring issues.
+  </description>
+
+  <!-- Time Range Picker -->
+  <row>
+    <panel>
+      <input type="time" token="time_range">
+        <label>Time Range</label>
+        <default>
+          <earliest>-30d</earliest>
+          <latest>now</latest>
+        </default>
+      </input>
+    </panel>
+  </row>
+
+  <!-- Failed Reports Table -->
+  <row>
+    <panel>
+      <title>Failed Report Executions</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:report
+            | search status=failed OR status=error
+            | eval failure_reason=coalesce(error_message, error_code, "Unknown")
+            | table
+                report_id
+                report_name
+                report_type
+                status
+                failure_reason
+                created_time
+                completed_time
+            | sort -created_time
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Failure Reasons Breakdown -->
+  <row>
+    <panel>
+      <title>Failure Reasons Breakdown</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:report
+            | search status=failed OR status=error
+            | eval failure_reason=coalesce(error_message, error_code, "Unknown")
+            | stats count by failure_reason
+            | sort -count
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.axisTitleX.text">Failure Reason</option>
+        <option name="charting.axisTitleY.text">Occurrences</option>
+        <option name="charting.legend.placement">none</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Failure Trend Over Time -->
+  <row>
+    <panel>
+      <title>Report Failures Over Time</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:report
+            | search status=failed OR status=error
+            | timechart span=1d count as failures
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.axisTitleX.text">Date</option>
+        <option name="charting.axisTitleY.text">Failure Count</option>
+        <option name="charting.legend.placement">none</option>
+      </chart>
+    </panel>
+  </row>
+
+</dashboard>
