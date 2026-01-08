@@ -1,0 +1,139 @@
+<!--
+    defender_easm_data_connections.xml
+    Microsoft Defender EASM for Splunk App
+
+    Dashboard: Data Connections
+    Navigation: Manage → Data Connections
+
+    Purpose:
+    Visibility into Defender EASM data connections, sources, and ingestion state.
+    This dashboard reflects control-plane configuration and ingestion telemetry
+    as collected by the Splunk modular input.
+
+    NOTE:
+    Defender EASM does not expose a single “data connections” REST object.
+    This dashboard is driven from normalized connection / source metadata
+    collected during workspace discovery and ingestion.
+-->
+
+<dashboard version="1.1">
+  <label>🔌 Defender EASM – Data Connections</label>
+  <description>
+    Visibility into configured data sources, ingestion state, and collection health
+    for Microsoft Defender External Attack Surface Management.
+  </description>
+
+  <!-- ========================= -->
+  <!-- ROW 1: HIGH-LEVEL METRICS -->
+  <!-- ========================= -->
+  <row>
+
+    <panel>
+      <title>Total Data Connections</title>
+      <single>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:data_connections
+            | stats dc(connection_id)
+          </query>
+        </search>
+        <option name="unit">connections</option>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Connection Status</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:data_connections
+            | stats count by connection_status
+          </query>
+        </search>
+        <option name="charting.chart">pie</option>
+      </chart>
+    </panel>
+
+    <panel>
+      <title>Connection Type</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:data_connections
+            | stats count by connection_type
+          </query>
+        </search>
+        <option name="charting.chart">bar</option>
+      </chart>
+    </panel>
+
+  </row>
+
+  <!-- ========================= -->
+  <!-- ROW 2: INGESTION HEALTH   -->
+  <!-- ========================= -->
+  <row>
+
+    <panel>
+      <title>Ingestion State</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:data_connections
+            | stats count by ingestion_state
+          </query>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.axisTitleX.text">State</option>
+        <option name="charting.axisTitleY.text">Count</option>
+      </chart>
+    </panel>
+
+    <panel>
+      <title>Last Successful Ingestion</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:data_connections
+            | stats max(last_successful_ingest) as last_ingest by connection_name
+            | sort - last_ingest
+          </query>
+        </search>
+        <option name="count">10</option>
+      </table>
+    </panel>
+
+  </row>
+
+  <!-- ========================= -->
+  <!-- ROW 3: CONNECTION DETAIL  -->
+  <!-- ========================= -->
+  <row>
+
+    <panel>
+      <title>Data Connection Inventory</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:data_connections
+            | table
+                connection_name
+                connection_type
+                connection_status
+                ingestion_state
+                last_successful_ingest
+                last_error
+                subscription_id
+                resource_group
+                workspace_name
+            | sort connection_name
+          </query>
+        </search>
+        <option name="count">20</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+
+  </row>
+
+</dashboard>
