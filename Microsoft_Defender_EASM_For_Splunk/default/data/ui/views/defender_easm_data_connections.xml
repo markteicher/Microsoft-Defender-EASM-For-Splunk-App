@@ -1,170 +1,96 @@
-<!--
-defender_easm_data_connections.xml
-Microsoft Defender EASM for Splunk App
-Manage → Data Connections
--->
+<!-- default/data/ui/views/defender_easm_data_connections.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- Data Connections – aligned to data-plane API -->
 
-<dashboard>
+<dashboard version="1.1">
   <label>Data Connections</label>
-  <description>Visibility into Microsoft Defender EASM data connections, ingestion state, frequency, and operational health.</description>
 
-  <!-- ========================= -->
-  <!-- GLOBAL TIME PICKER        -->
-  <!-- ========================= -->
-  <fieldset submitButton="false">
-    <input type="time">
-      <label>Time Range</label>
-      <default>
-        <earliest>-30d@d</earliest>
-        <latest>now</latest>
-      </default>
-    </input>
-  </fieldset>
+  <description>
+    Operational view of Defender EASM data-plane connections including
+    connection type, status, sync cadence, and runtime health.
+  </description>
 
-  <!-- ========================= -->
-  <!-- KPI ROW                   -->
-  <!-- ========================= -->
+  <!-- Base search -->
+  <search id="base_data_connections">
+    <query>
+      index=security_defender_easm sourcetype=defender:easm:data_connection
+      | eval last_run=strftime(lastRunTime,"%Y-%m-%d %H:%M:%S")
+      | eval next_run=strftime(nextRunTime,"%Y-%m-%d %H:%M:%S")
+      | eval created=strftime(createdTime,"%Y-%m-%d %H:%M:%S")
+      | eval updated=strftime(updatedTime,"%Y-%m-%d %H:%M:%S")
+    </query>
+    <earliest>-24h</earliest>
+    <latest>now</latest>
+  </search>
+
+  <!-- KPI Row -->
   <row>
     <panel>
       <single>
+        <search base="base_data_connections">
+          <query>| stats count</query>
+        </search>
         <title>Total Data Connections</title>
-        <search>
-          <query>
-            index=security_defender_easm sourcetype=defender:easm:data_connections
-            | stats dc(connection_id) AS total
-          </query>
-        </search>
-        <option name="unit">connections</option>
       </single>
     </panel>
 
     <panel>
       <single>
+        <search base="base_data_connections">
+          <query>| search status="Connected" | stats count</query>
+        </search>
         <title>Connected</title>
-        <search>
-          <query>
-            index=security_defender_easm sourcetype=defender:easm:data_connections status=Connected
-            | stats count
-          </query>
-        </search>
       </single>
     </panel>
 
     <panel>
       <single>
-        <title>Disconnected</title>
-        <search>
-          <query>
-            index=security_defender_easm sourcetype=defender:easm:data_connections status=Disconnected
-            | stats count
-          </query>
+        <search base="base_data_connections">
+          <query>| search status!="Connected" | stats count</query>
         </search>
-      </single>
-    </panel>
-
-    <panel>
-      <single>
-        <title>Errors (Last 24h)</title>
-        <search>
-          <query>
-            index=security_defender_easm sourcetype=defender:easm:data_connections error=*
-            | where _time &gt; relative_time(now(), "-24h")
-            | stats count
-          </query>
-        </search>
+        <title>Disconnected / Error</title>
       </single>
     </panel>
   </row>
 
-  <!-- ========================= -->
-  <!-- CONNECTION STATUS TABLE   -->
-  <!-- ========================= -->
+  <!-- Data Connections Table -->
   <row>
     <panel>
       <title>Data Connection Inventory</title>
+
       <table>
-        <search>
+        <search base="base_data_connections">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:data_connections
-            | stats latest(status) AS status
-                    latest(type) AS type
-                    latest(frequency) AS frequency
-                    latest(content) AS content
-                    latest(workspace_id) AS workspace_id
-                    latest(created_time) AS created
-                    latest(updated_time) AS updated
-                    by connection_name
+            | table name type status content frequency last_run next_run created updated
+            | sort name
           </query>
         </search>
+
         <option name="count">20</option>
+        <option name="wrap">true</option>
+
+        <!-- Drilldown -->
+        <drilldown>
+          <set token="dc_name">$row.name$</set>
+        </drilldown>
       </table>
     </panel>
   </row>
 
-  <!-- ========================= -->
-  <!-- INGESTION FREQUENCY       -->
-  <!-- ========================= -->
+  <!-- Detail Panel -->
   <row>
     <panel>
-      <title>Ingestion Frequency Distribution</title>
-      <chart>
-        <search>
-          <query>
-            index=security_defender_easm sourcetype=defender:easm:data_connections
-            | stats count by frequency
-          </query>
-        </search>
-        <option name="charting.chart">pie</option>
-      </chart>
-    </panel>
+      <title>Connection Details: $dc_name$</title>
 
-    <panel>
-      <title>Connection Types</title>
-      <chart>
-        <search>
-          <query>
-            index=security_defender_easm sourcetype=defender:easm:data_connections
-            | stats count by type
-          </query>
-        </search>
-        <option name="charting.chart">bar</option>
-      </chart>
-    </panel>
-  </row>
-
-  <!-- ========================= -->
-  <!-- OPERATIONAL TIMELINE      -->
-  <!-- ========================= -->
-  <row>
-    <panel>
-      <title>Connection State Changes Over Time</title>
-      <chart>
-        <search>
-          <query>
-            index=security_defender_easm sourcetype=defender:easm:data_connections
-            | timechart span=1d count by status
-          </query>
-        </search>
-        <option name="charting.chart">line</option>
-      </chart>
-    </panel>
-  </row>
-
-  <!-- ========================= -->
-  <!-- TROUBLESHOOTING           -->
-  <!-- ========================= -->
-  <row>
-    <panel>
-      <title>Recent Connection Errors</title>
       <table>
-        <search>
+        <search base="base_data_connections">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:data_connections error=*
-            | table _time connection_name status error message
-            | sort -_time
+            | search name="$dc_name$"
+            | transpose
+            | rename column as Field, row 1 as Value
           </query>
         </search>
-        <option name="count">10</option>
+        <option name="count">20</option>
       </table>
     </panel>
   </row>
