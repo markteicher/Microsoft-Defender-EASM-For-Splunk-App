@@ -1,0 +1,104 @@
+<!-- defender_easm_report_details.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- Dashboard: Report Details (Single Report Drilldown) -->
+
+<dashboard version="1.1">
+  <label>Report Details</label>
+  <description>
+    Detailed view of a single Microsoft Defender EASM report, including
+    metadata, execution status, and timing.
+  </description>
+
+  <!-- Input: Report Selector -->
+  <row>
+    <panel>
+      <title>Select Report</title>
+      <input type="dropdown" token="report_id">
+        <label>Report ID</label>
+        <choice value="*">All</choice>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:report
+            | stats values(report_id) as report_id
+            | mvexpand report_id
+            | sort report_id
+          </query>
+        </search>
+        <fieldForLabel>report_id</fieldForLabel>
+        <fieldForValue>report_id</fieldForValue>
+      </input>
+    </panel>
+  </row>
+
+  <!-- Core Metadata -->
+  <row>
+    <panel>
+      <title>Report Metadata</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:report
+            | search report_id=$report_id$
+            | table
+                report_id
+                report_name
+                report_type
+                status
+                created_by
+                created_time
+                completed_time
+          </query>
+          <earliest>-180d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">5</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Execution Timing -->
+  <row>
+    <panel>
+      <title>Execution Duration</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:report
+            | search report_id=$report_id$
+            | eval duration_seconds=completed_time-created_time
+            | table
+                report_id
+                status
+                created_time
+                completed_time
+                duration_seconds
+          </query>
+          <earliest>-180d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">5</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Status Timeline -->
+  <row>
+    <panel>
+      <title>Status Timeline</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:report
+            | search report_id=$report_id$
+            | timechart count by status
+          </query>
+          <earliest>-180d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+
+</dashboard>
