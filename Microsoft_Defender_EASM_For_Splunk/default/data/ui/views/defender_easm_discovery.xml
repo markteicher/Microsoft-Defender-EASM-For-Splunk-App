@@ -1,0 +1,134 @@
+<!--
+  File: defender_easm_discovery.xml
+  Purpose: Manage → Discovery
+-->
+
+<dashboard version="1.1">
+  <label>Discovery</label>
+
+  <!-- ========================= -->
+  <!-- Discovery Overview -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Total Discovery Jobs</title>
+      <single>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:discovery
+            | stats count
+          </query>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Active Discovery Jobs</title>
+      <single>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:discovery status=active
+            | stats count
+          </query>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Completed Discovery Jobs</title>
+      <single>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:discovery status=completed
+            | stats count
+          </query>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Failed Discovery Jobs</title>
+      <single>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:discovery status=failed
+            | stats count
+          </query>
+        </search>
+      </single>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- Discovery Job Status -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Discovery Jobs by Status</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:discovery
+            | stats count by status
+          </query>
+        </search>
+        <option name="charting.chart">bar</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- Discovery Execution Trend -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Discovery Execution Trend</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:discovery
+            | timechart span=1d count by status
+          </query>
+        </search>
+        <option name="charting.chart">line</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- Discovered Assets by Type -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Assets Discovered by Type</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:assets
+            | stats count by assetType
+          </query>
+        </search>
+        <option name="charting.chart">pie</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- Discovery Job Details -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Discovery Job Details</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:discovery
+            | table discoveryId name status startTime endTime assetCount errorMessage
+            | sort - startTime
+          </query>
+        </search>
+      </table>
+    </panel>
+  </row>
+
+</dashboard>
