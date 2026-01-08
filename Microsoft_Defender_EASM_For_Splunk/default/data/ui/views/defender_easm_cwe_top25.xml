@@ -1,0 +1,48 @@
+<dashboard>
+  <label>CWE Top 25 Software Weaknesses</label>
+
+  <row>
+    <panel>
+      <title>CWE Top 25 Overview</title>
+      <single>
+        <search>
+          <query>
+            index=defender_easm sourcetype=easm:cwe
+            | stats count as "Affected Assets"
+          </query>
+        </search>
+        <option name="unit">assets</option>
+      </single>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>CWE Distribution by Year</title>
+      <chart>
+        <search>
+          <query>
+            index=defender_easm sourcetype=easm:cwe
+            | stats count by cwe_id year
+          </query>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.stackMode">stacked</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>CWE Affected Assets</title>
+      <table>
+        <search>
+          <query>
+            index=defender_easm sourcetype=easm:cwe
+            | table year cwe_id cwe_name asset asset_type state
+          </query>
+        </search>
+      </table>
+    </panel>
+  </row>
+</dashboard>
