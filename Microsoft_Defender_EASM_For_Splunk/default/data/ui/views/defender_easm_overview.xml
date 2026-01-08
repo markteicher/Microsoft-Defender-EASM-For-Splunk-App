@@ -1,0 +1,115 @@
+<dashboard version="1.1">
+  <label>Overview</label>
+
+  <!-- ========================= -->
+  <!-- Asset Inventory Summary -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Domains</title>
+      <single>
+        <search>
+          <query>index=security_defender_easm sourcetype=defender:easm:domains | stats count</query>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Hosts</title>
+      <single>
+        <search>
+          <query>index=security_defender_easm sourcetype=defender:easm:hosts | stats count</query>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Pages</title>
+      <single>
+        <search>
+          <query>index=security_defender_easm sourcetype=defender:easm:pages | stats count</query>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <title>SSL Certificates</title>
+      <single>
+        <search>
+          <query>index=security_defender_easm sourcetype=defender:easm:certificates | stats count</query>
+        </search>
+      </single>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>ASNs</title>
+      <single>
+        <search>
+          <query>index=security_defender_easm sourcetype=defender:easm:asns | stats count</query>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <title>IP Blocks</title>
+      <single>
+        <search>
+          <query>index=security_defender_easm sourcetype=defender:easm:ip_blocks | stats count</query>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <title>IP Addresses</title>
+      <single>
+        <search>
+          <query>index=security_defender_easm sourcetype=defender:easm:ip_addresses | stats count</query>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Contacts</title>
+      <single>
+        <search>
+          <query>index=security_defender_easm sourcetype=defender:easm:contacts | stats count</query>
+        </search>
+      </single>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- Attack Surface Insights -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>High Priority</title>
+      <single>
+        <search>
+          <query>index=security_defender_easm sourcetype=defender:easm:insights priority=high | stats count</query>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Medium Priority</title>
+      <single>
+        <search>
+          <query>index=security_defender_easm sourcetype=defender:easm:insights priority=medium | stats count</query>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Low Priority</title>
+      <single>
+        <search>
+          <query>index=security_defender_easm sourcetype=defender:easm:insights priority=low | stats count</query>
+        </search>
+      </single>
+    </panel>
+  </row>
+
+</dashboard>
