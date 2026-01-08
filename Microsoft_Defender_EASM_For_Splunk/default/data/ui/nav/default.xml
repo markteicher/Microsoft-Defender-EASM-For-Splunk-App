@@ -1,11 +1,11 @@
 <!-- default/data/ui/nav/default.xml -->
 <!-- Microsoft Defender EASM for Splunk App -->
-<!-- Primary navigation structure -->
+<!-- Navigation – expandable, no dashboard logic implied -->
 
 <nav search_view="search">
-  
+
   <!-- Overview -->
-  <view name="defender_easm_overview" label="Overview Dashboard" />
+  <view name="defender_easm_overview" label="Overview" />
 
   <!-- General -->
   <collection label="General">
@@ -14,10 +14,14 @@
 
   <!-- Dashboards -->
   <collection label="Dashboards">
-    <view name="defender_easm_attack_surface_summary" label="Attack Surface Summary" />
-    <view name="defender_easm_security_posture" label="Security Posture" />
-    <view name="defender_easm_gdpr_compliance" label="GDPR Compliance" />
-    <view name="defender_easm_owasp_top10" label="OWASP Top 10" />
+    <view name="defender_easm_overview_dashboard" label="Overview" />
+    <view name="defender_easm_asset_inventory" label="Asset Inventory" />
+    <view name="defender_easm_infrastructure_map" label="Infrastructure Map" />
+    <view name="defender_easm_certificates" label="Certificates" />
+    <view name="defender_easm_geography" label="Geography" />
+    <view name="defender_easm_trends" label="Trends" />
+    <view name="defender_easm_operations" label="Operations" />
+    <view name="defender_easm_health" label="Health" />
   </collection>
 
   <!-- Manage -->
