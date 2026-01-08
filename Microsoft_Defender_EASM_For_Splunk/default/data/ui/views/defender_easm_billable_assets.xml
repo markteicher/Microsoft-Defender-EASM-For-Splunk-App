@@ -1,146 +1,119 @@
-<!--
-File: defender_easm_billable_assets.xml
-Location: default/data/ui/views/
-Purpose: Manage → Billable Assets
--->
+<!-- defender_easm_billable_assets.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- Dashboard: Billable Assets (Manage → Billable Assets) -->
 
 <dashboard version="1.1">
   <label>Billable Assets</label>
   <description>
-    Visibility into Microsoft Defender EASM billable asset consumption and breakdown by asset type.
+    View billable asset counts and trends based on Microsoft Defender EASM billing logic.
+    Counts reflect the last 30 days of observed activity.
   </description>
 
-  <!-- KPI SUMMARY -->
+  <!-- Time Picker -->
+  <fieldset submitButton="false">
+    <input type="time" token="time">
+      <label>Time Range</label>
+      <default>
+        <earliest>-30d@d</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+
+  <!-- KPI Row -->
   <row>
     <panel>
-      <title>Total Billable Assets</title>
       <single>
+        <title>Total Billable Assets</title>
         <search>
           <query>
-            index=security_defender_easm
-            sourcetype=defender:easm:assets
-            billable=true
-            | stats count as total_billable
+            index=security_defender_easm sourcetype=defender:easm:billable
+            | stats count as total
           </query>
-          <earliest>-30d</earliest>
-          <latest>now</latest>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
         </search>
       </single>
     </panel>
 
     <panel>
-      <title>Non-Billable Assets</title>
       <single>
+        <title>Hosts</title>
         <search>
           <query>
-            index=security_defender_easm
-            sourcetype=defender:easm:assets
-            billable=false
-            | stats count as non_billable
+            index=security_defender_easm sourcetype=defender:easm:billable asset_type=host
+            | stats count
           </query>
-          <earliest>-30d</earliest>
-          <latest>now</latest>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
         </search>
       </single>
     </panel>
 
     <panel>
-      <title>Billable Asset Types</title>
       <single>
+        <title>Domains</title>
         <search>
           <query>
-            index=security_defender_easm
-            sourcetype=defender:easm:assets
-            billable=true
-            | stats dc(asset_type) as asset_types
+            index=security_defender_easm sourcetype=defender:easm:billable asset_type=domain
+            | stats count
           </query>
-          <earliest>-30d</earliest>
-          <latest>now</latest>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <single>
+        <title>IP Addresses</title>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:billable asset_type=ip
+            | stats count
+          </query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
         </search>
       </single>
     </panel>
   </row>
 
-  <!-- DISTRIBUTION -->
+  <!-- 30-Day Trend -->
   <row>
     <panel>
-      <title>Billable Assets by Type</title>
       <chart>
+        <title>Billable Assets – 30 Day Trend</title>
         <search>
           <query>
-            index=security_defender_easm
-            sourcetype=defender:easm:assets
-            billable=true
-            | stats count by asset_type
+            index=security_defender_easm sourcetype=defender:easm:billable
+            | timechart span=1d count by asset_type
           </query>
-          <earliest>-30d</earliest>
-          <latest>now</latest>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
         </search>
-        <option name="charting.chart">bar</option>
-        <option name="charting.legend.placement">none</option>
-      </chart>
-    </panel>
-
-    <panel>
-      <title>Billable vs Non-Billable</title>
-      <chart>
-        <search>
-          <query>
-            index=security_defender_easm
-            sourcetype=defender:easm:assets
-            | stats count by billable
-          </query>
-          <earliest>-30d</earliest>
-          <latest>now</latest>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.legend.placement">right</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.stackMode">stacked</option>
+        <option name="charting.legend.placement">bottom</option>
       </chart>
     </panel>
   </row>
 
-  <!-- TREND -->
+  <!-- Detail Table -->
   <row>
     <panel>
-      <title>Billable Asset Trend</title>
-      <chart>
-        <search>
-          <query>
-            index=security_defender_easm
-            sourcetype=defender:easm:assets
-            billable=true
-            | timechart span=1d count
-          </query>
-          <earliest>-30d</earliest>
-          <latest>now</latest>
-        </search>
-        <option name="charting.chart">line</option>
-        <option name="charting.legend.placement">none</option>
-      </chart>
-    </panel>
-  </row>
-
-  <!-- DETAIL TABLE -->
-  <row>
-    <panel>
-      <title>Billable Asset Details</title>
       <table>
+        <title>Billable Asset Details</title>
         <search>
           <query>
-            index=security_defender_easm
-            sourcetype=defender:easm:assets
-            billable=true
-            | eval first_seen=strftime(first_seen,"%Y-%m-%d")
-            | eval last_seen=strftime(last_seen,"%Y-%m-%d")
-            | table asset_id asset_type asset_name first_seen last_seen
-            | sort asset_type asset_name
+            index=security_defender_easm sourcetype=defender:easm:billable
+            | table _time asset_type asset_name ip_address domain host
+            | sort -_time
           </query>
-          <earliest>-30d</earliest>
-          <latest>now</latest>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
         </search>
-        <option name="count">25</option>
-        <option name="wrap">true</option>
-        <option name="rowNumbers">true</option>
+        <option name="count">20</option>
       </table>
     </panel>
   </row>
