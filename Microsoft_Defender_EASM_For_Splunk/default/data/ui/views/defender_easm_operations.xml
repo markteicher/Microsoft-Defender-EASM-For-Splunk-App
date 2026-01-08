@@ -1,0 +1,80 @@
+<!-- default/data/ui/views/defender_easm_operations.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- Control Plane Operations Dashboard -->
+
+<dashboard version="1.1" theme="light">
+  <label>Operations</label>
+
+  <description>
+    Control plane operations supported by Microsoft Defender External Attack Surface Management.
+    This view reflects available provider actions and permissions.
+  </description>
+
+  <!-- ========================= -->
+  <!-- Operations Overview -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Operation Types</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:operations
+            | stats count by isDataAction
+            | eval actionType=if(isDataAction=true,"Data Action","Control Plane Action")
+            | stats sum(count) by actionType
+          </query>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- Operations Table -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Available EASM Operations</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:operations
+            | table name display.provider display.resource display.operation display.description isDataAction
+            | rename
+                display.provider AS provider
+                display.resource AS resource
+                display.operation AS operation
+                display.description AS description
+          </query>
+        </search>
+        <option name="wrap">true</option>
+        <option name="count">25</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- Operation Coverage -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Operation Coverage by Resource</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:operations
+            | stats count by display.resource
+            | sort - count
+          </query>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.axisTitleX.text">Resource Type</option>
+        <option name="charting.axisTitleY.text">Operation Count</option>
+        <option name="legend.placement">none</option>
+      </chart>
+    </panel>
+  </row>
+
+</dashboard>
