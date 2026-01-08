@@ -172,7 +172,7 @@ Run the following search in Splunk:
 - Inputs disabled by default
 - Encrypted credential storage
 - `app.manifest` included
-- Apache 2.0 License
+- MIT License
 - Setup-based configuration
 
 ---
