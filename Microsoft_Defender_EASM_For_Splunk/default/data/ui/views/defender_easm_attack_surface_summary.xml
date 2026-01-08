@@ -1,0 +1,112 @@
+<dashboard version="1.1">
+  <label>Attack Surface Summary</label>
+
+  <!-- ========================= -->
+  <!-- Overall Exposure Summary -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Total Exposed Assets</title>
+      <single>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:assets
+            | stats count
+          </query>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <title>High Risk Findings</title>
+      <single>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:insights priority=high
+            | stats count
+          </query>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Medium Risk Findings</title>
+      <single>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:insights priority=medium
+            | stats count
+          </query>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Low Risk Findings</title>
+      <single>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:insights priority=low
+            | stats count
+          </query>
+        </search>
+      </single>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- Exposure by Asset Type -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Exposure by Asset Type</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:assets
+            | stats count by assetType
+          </query>
+        </search>
+        <option name="charting.chart">pie</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- Exposure Trend -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Attack Surface Trend</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:insights
+            | timechart span=1d count by priority
+          </query>
+        </search>
+        <option name="charting.chart">line</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- Top Risk Drivers -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Top Risk Drivers</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:insights
+            | stats count by category
+            | sort - count
+            | head 10
+          </query>
+        </search>
+      </table>
+    </panel>
+  </row>
+
+</dashboard>
