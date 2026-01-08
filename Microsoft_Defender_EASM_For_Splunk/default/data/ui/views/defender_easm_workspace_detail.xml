@@ -1,0 +1,103 @@
+<!-- default/data/ui/views/defender_easm_workspace_detail.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- Workspace Detail Dashboard -->
+
+<dashboard version="1.1">
+  <label>Workspace Details</label>
+
+  <!-- Drilldown Token -->
+  <init>
+    <set token="workspace_name">$form.workspace_name$</set>
+  </init>
+
+  <!-- ============================= -->
+  <!-- Workspace Summary -->
+  <!-- ============================= -->
+  <row>
+    <panel>
+      <title>Workspace Summary</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:workspace
+            | search name="$workspace_name$"
+            | table name location properties.provisioningState id
+          </query>
+        </search>
+        <option name="count">10</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- ============================= -->
+  <!-- Provisioning State -->
+  <!-- ============================= -->
+  <row>
+    <panel>
+      <title>Provisioning State</title>
+      <single>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:workspace
+            | search name="$workspace_name$"
+            | stats values(properties.provisioningState) AS "Provisioning State"
+          </query>
+        </search>
+        <option name="underLabel">Current Status</option>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Workspace Location</title>
+      <single>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:workspace
+            | search name="$workspace_name$"
+            | stats values(location) AS "Azure Region"
+          </query>
+        </search>
+        <option name="underLabel">Deployment Region</option>
+      </single>
+    </panel>
+  </row>
+
+  <!-- ============================= -->
+  <!-- Workspace Metadata -->
+  <!-- ============================= -->
+  <row>
+    <panel>
+      <title>Workspace Metadata</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:workspace
+            | search name="$workspace_name$"
+            | eval subscriptionId=mvindex(split(id,"/"),2)
+            | eval resourceGroup=mvindex(split(id,"/"),4)
+            | table name subscriptionId resourceGroup id
+          </query>
+        </search>
+      </table>
+    </panel>
+  </row>
+
+  <!-- ============================= -->
+  <!-- System Data (ARM metadata) -->
+  <!-- ============================= -->
+  <row>
+    <panel>
+      <title>System Metadata</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm sourcetype=defender:easm:workspace
+            | search name="$workspace_name$"
+            | table systemData.createdBy systemData.createdAt systemData.lastModifiedBy systemData.lastModifiedAt
+          </query>
+        </search>
+      </table>
+    </panel>
+  </row>
+
+</dashboard>
