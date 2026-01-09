@@ -1,21 +1,13 @@
-<!--
-  File: defender_easm_asset_detail.xml
-  Microsoft Defender EASM for Splunk App
-
-  Purpose:
-  Detailed view of a single asset resource discovered by Microsoft Defender
-  External Attack Surface Management.
-
-  Source:
-  Assets – Get Asset Resource (data-plane)
--->
+<!-- defender_easm_asset_detail.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- Asset Detail (Cross-Type) -->
 
 <dashboard version="1.1">
   <label>Asset Detail</label>
 
   <description>
-    Detailed metadata, lifecycle state, discovery context, and raw payload
-    for a single Defender EASM asset resource.
+    Detailed view of a single asset resource discovered by Microsoft Defender
+    External Attack Surface Management. This view supports all EASM asset types.
   </description>
 
   <!-- ========================= -->
@@ -35,14 +27,17 @@
         <search>
           <query>
             `easm_index`
-            sourcetype=defender:easm:asset
+            `easm_assets_sourcetypes`
             easm_id="$easm_id$"
+            | eval asset_type=coalesce(asset_type, assetType, sourcetype)
             | table
                 easm_id
                 asset_type
+                sourcetype
                 name
-                state
-                discovery_source
+                domain
+                host
+                ip_address
           </query>
         </search>
         <option name="wrap">true</option>
@@ -51,7 +46,7 @@
   </row>
 
   <!-- ========================= -->
-  <!-- LIFECYCLE TIMELINE -->
+  <!-- LIFECYCLE INFORMATION -->
   <!-- ========================= -->
   <row>
     <panel>
@@ -60,37 +55,25 @@
         <search>
           <query>
             `easm_index`
-            sourcetype=defender:easm:asset
+            `easm_assets_sourcetypes`
             easm_id="$easm_id$"
+            | eval
+                first_seen=coalesce(firstSeenDateTime, discoveredDate, createdDate),
+                last_seen=coalesce(lastSeenDateTime, observedDate, lastUpdatedDate)
             | table
                 first_seen
                 last_seen
-                created_time
-                last_updated_time
+                createdDate
+                lastUpdatedDate
           </query>
         </search>
         <option name="wrap">true</option>
       </table>
     </panel>
-
-    <panel>
-      <title>Asset State</title>
-      <single>
-        <search>
-          <query>
-            `easm_index`
-            sourcetype=defender:easm:asset
-            easm_id="$easm_id$"
-            | stats values(state) AS state
-          </query>
-        </search>
-        <option name="underLabel">Current State</option>
-      </single>
-    </panel>
   </row>
 
   <!-- ========================= -->
-  <!-- DISCOVERY CONTEXT -->
+  <!-- DISCOVERY CONTEXT (BEST-EFFORT) -->
   <!-- ========================= -->
   <row>
     <panel>
@@ -99,37 +82,12 @@
         <search>
           <query>
             `easm_index`
-            sourcetype=defender:easm:asset
+            `easm_assets_sourcetypes`
             easm_id="$easm_id$"
             | table
-                discovery_source
-                discovery_method
-                discovery_task_id
-                discovery_template
-          </query>
-        </search>
-        <option name="wrap">true</option>
-      </table>
-    </panel>
-  </row>
-
-  <!-- ========================= -->
-  <!-- RELATIONSHIP FIELDS -->
-  <!-- ========================= -->
-  <row>
-    <panel>
-      <title>Relationships & Identifiers</title>
-      <table>
-        <search>
-          <query>
-            `easm_index`
-            sourcetype=defender:easm:asset
-            easm_id="$easm_id$"
-            | table
-                subscription_id
-                resource_group
-                workspace_name
-                external_id
+                discoverySource
+                discoveryMethod
+                discoveryTaskId
           </query>
         </search>
         <option name="wrap">true</option>
@@ -147,7 +105,7 @@
         <search>
           <query>
             `easm_index`
-            sourcetype=defender:easm:asset
+            `easm_assets_sourcetypes`
             easm_id="$easm_id$"
           </query>
         </search>
