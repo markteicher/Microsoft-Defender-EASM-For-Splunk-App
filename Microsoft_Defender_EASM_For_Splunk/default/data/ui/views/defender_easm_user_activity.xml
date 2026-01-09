@@ -1,0 +1,127 @@
+<!-- defender_easm_user_activity.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- User Activity & Audit Dashboard -->
+<!-- Based on Azure Activity Log + Defender EASM APIs -->
+
+<dashboard version="1.1">
+  <label>User Activity & Audit</label>
+  <description>
+    Auditable user actions across Microsoft Defender EASM workspaces.
+    This dashboard reflects control-plane and operational activity.
+    UI-level button clicks are not available in Defender EASM.
+  </description>
+
+  <!-- Time Picker -->
+  <row>
+    <panel>
+      <input type="time" token="timeRange">
+        <label>Time Range</label>
+        <default>
+          <earliest>-7d@d</earliest>
+          <latest>now</latest>
+        </default>
+      </input>
+    </panel>
+  </row>
+
+  <!-- Summary Metrics -->
+  <row>
+    <panel>
+      <title>Activity Summary</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm
+            (
+              sourcetype=azure:activitylog
+              OR sourcetype=defender:easm:task
+              OR sourcetype=defender:easm:report
+              OR sourcetype=defender:easm:policy
+            )
+            | stats
+                count AS total_events
+                dc(caller) AS unique_users
+                dc(operationName) AS unique_actions
+          </query>
+          <earliest>$timeRange.earliest$</earliest>
+          <latest>$timeRange.latest$</latest>
+        </search>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Detailed Activity Table -->
+  <row>
+    <panel>
+      <title>Detailed User Activity</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm
+            (
+              sourcetype=azure:activitylog
+              OR sourcetype=defender:easm:task
+              OR sourcetype=defender:easm:report
+              OR sourcetype=defender:easm:policy
+            )
+            | eval user=coalesce(caller, initiatedBy, createdBy)
+            | eval action=coalesce(operationName, taskType, reportType, policyName)
+            | eval resource=coalesce(resourceId, workspaceId)
+            | table
+                _time
+                user
+                action
+                resource
+                status
+                sourcetype
+          </query>
+          <earliest>$timeRange.earliest$</earliest>
+          <latest>$timeRange.latest$</latest>
+        </search>
+
+        <option name="count">20</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Activity Breakdown -->
+  <row>
+    <panel>
+      <title>Activity by Action Type</title>
+      <chart>
+        <search>
+          <query>
+            index=security_defender_easm
+            (
+              sourcetype=azure:activitylog
+              OR sourcetype=defender:easm:task
+              OR sourcetype=defender:easm:report
+            )
+            | eval action=coalesce(operationName, taskType, reportType)
+            | stats count BY action
+            | sort -count
+          </query>
+          <earliest>$timeRange.earliest$</earliest>
+          <latest>$timeRange.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Explicit Limitation Notice -->
+  <row>
+    <panel>
+      <html>
+        <h3>Audit Scope Limitation</h3>
+        <p>
+          Microsoft Defender EASM does not expose UI interaction or button-click events.
+          This dashboard reflects auditable control-plane and operational activity only,
+          sourced from Azure Activity Logs and Defender EASM APIs.
+        </p>
+      </html>
+    </panel>
+  </row>
+
+</dashboard>
