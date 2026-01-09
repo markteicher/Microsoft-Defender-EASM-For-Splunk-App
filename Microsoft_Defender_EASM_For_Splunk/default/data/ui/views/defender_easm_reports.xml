@@ -4,39 +4,101 @@
 
 <dashboard version="1.1">
   <label>Reports</label>
+
   <description>
-    Inventory and visibility of Microsoft Defender EASM reports collected
-    from the data-plane Reports API.
+    Inventory and operational visibility of Microsoft Defender EASM reports
+    collected from the data-plane Reports API.
   </description>
 
-  <!-- Summary -->
+  <!-- ========================= -->
+  <!-- TIME RANGE -->
+  <!-- ========================= -->
+
+  <fieldset submitButton="false">
+    <input type="time" token="time">
+      <label>Time Range</label>
+      <default>
+        <earliest>-90d@d</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+
+  <!-- ========================= -->
+  <!-- BASE SEARCH -->
+  <!-- ========================= -->
+
+  <search id="reports_base">
+    <query>
+      `easm_index`
+      sourcetype=defender:easm:report
+    </query>
+    <earliest>$time.earliest$</earliest>
+    <latest>$time.latest$</latest>
+  </search>
+
+  <!-- ========================= -->
+  <!-- KPI SUMMARY -->
+  <!-- ========================= -->
+
   <row>
     <panel>
-      <title>Reports Summary</title>
-      <table>
-        <search>
+      <title>Total Reports</title>
+      <single>
+        <search base="reports_base">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:report
-            | stats
-                count as total_reports
-                by report_type
+            | stats count
           </query>
-          <earliest>-30d</earliest>
-          <latest>now</latest>
         </search>
-        <option name="count">10</option>
-      </table>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Successful Reports</title>
+      <single>
+        <search base="reports_base">
+          <query>
+            | search status=completed
+            | stats count
+          </query>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Failed Reports</title>
+      <single>
+        <search base="reports_base">
+          <query>
+            | search status IN ("failed","error")
+            | stats count
+          </query>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Distinct Report Types</title>
+      <single>
+        <search base="reports_base">
+          <query>
+            | stats dc(report_type)
+          </query>
+        </search>
+      </single>
     </panel>
   </row>
 
-  <!-- Report Inventory -->
+  <!-- ========================= -->
+  <!-- REPORT INVENTORY -->
+  <!-- ========================= -->
+
   <row>
     <panel>
       <title>Report Inventory</title>
       <table>
-        <search>
+        <search base="reports_base">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:report
             | table
                 report_id
                 report_name
@@ -47,27 +109,35 @@
                 created_by
             | sort - created_time
           </query>
-          <earliest>-90d</earliest>
-          <latest>now</latest>
         </search>
+
+        <drilldown>
+          <link>
+            <![CDATA[
+              /app/microsoft_defender_easm/defender_easm_report_details?report_id=$row.report_id$
+            ]]>
+          </link>
+        </drilldown>
+
         <option name="count">20</option>
+        <option name="wrap">true</option>
       </table>
     </panel>
   </row>
 
-  <!-- Reports by Type -->
+  <!-- ========================= -->
+  <!-- REPORT TYPE DISTRIBUTION -->
+  <!-- ========================= -->
+
   <row>
     <panel>
       <title>Reports by Type</title>
       <chart>
-        <search>
+        <search base="reports_base">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:report
             | stats count by report_type
             | sort - count
           </query>
-          <earliest>-90d</earliest>
-          <latest>now</latest>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.legend.placement">right</option>
@@ -75,35 +145,38 @@
     </panel>
   </row>
 
-  <!-- Report Status -->
+  <!-- ========================= -->
+  <!-- STATUS DISTRIBUTION -->
+  <!-- ========================= -->
+
   <row>
     <panel>
       <title>Report Status Distribution</title>
       <chart>
-        <search>
+        <search base="reports_base">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:report
             | stats count by status
             | sort - count
           </query>
-          <earliest>-90d</earliest>
-          <latest>now</latest>
         </search>
         <option name="charting.chart">bar</option>
         <option name="charting.axisTitleX.text">Status</option>
         <option name="charting.axisTitleY.text">Report Count</option>
+        <option name="charting.legend.placement">none</option>
       </chart>
     </panel>
   </row>
 
-  <!-- Recent Activity -->
+  <!-- ========================= -->
+  <!-- RECENT ACTIVITY -->
+  <!-- ========================= -->
+
   <row>
     <panel>
       <title>Recent Report Activity</title>
       <table>
-        <search>
+        <search base="reports_base">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:report
             | sort - created_time
             | table
                 created_time
@@ -112,10 +185,9 @@
                 status
                 created_by
           </query>
-          <earliest>-14d</earliest>
-          <latest>now</latest>
         </search>
         <option name="count">15</option>
+        <option name="wrap">true</option>
       </table>
     </panel>
   </row>
