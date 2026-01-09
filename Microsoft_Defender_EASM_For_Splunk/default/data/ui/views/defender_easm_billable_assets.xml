@@ -1,15 +1,17 @@
 <!-- defender_easm_billable_assets.xml -->
 <!-- Microsoft Defender EASM for Splunk App -->
-<!-- Dashboard: Billable Assets (Manage → Billable Assets) -->
+<!-- Manage → Billable Assets -->
 
 <dashboard version="1.1">
   <label>Billable Assets</label>
   <description>
-    View billable asset counts and trends based on Microsoft Defender EASM billing logic.
-    Counts reflect the last 30 days of observed activity.
+    Visibility into billable assets reported by Microsoft Defender External Attack Surface Management.
+    Counts and trends are derived directly from billable asset records.
   </description>
 
-  <!-- Time Picker -->
+  <!-- ========================= -->
+  <!-- TIME PICKER -->
+  <!-- ========================= -->
   <fieldset submitButton="false">
     <input type="time" token="time">
       <label>Time Range</label>
@@ -20,28 +22,17 @@
     </input>
   </fieldset>
 
-  <!-- KPI Row -->
+  <!-- ========================= -->
+  <!-- KPI SUMMARY -->
+  <!-- ========================= -->
   <row>
     <panel>
+      <title>Total Billable Assets</title>
       <single>
-        <title>Total Billable Assets</title>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:billable
-            | stats count as total
-          </query>
-          <earliest>$time.earliest$</earliest>
-          <latest>$time.latest$</latest>
-        </search>
-      </single>
-    </panel>
-
-    <panel>
-      <single>
-        <title>Hosts</title>
-        <search>
-          <query>
-            index=security_defender_easm sourcetype=defender:easm:billable asset_type=host
+            `easm_index`
+            sourcetype=defender:easm:billable_asset
             | stats count
           </query>
           <earliest>$time.earliest$</earliest>
@@ -51,11 +42,13 @@
     </panel>
 
     <panel>
+      <title>Hosts</title>
       <single>
-        <title>Domains</title>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:billable asset_type=domain
+            `easm_index`
+            sourcetype=defender:easm:billable_asset
+            billable_type=host
             | stats count
           </query>
           <earliest>$time.earliest$</earliest>
@@ -65,11 +58,29 @@
     </panel>
 
     <panel>
+      <title>Domains</title>
       <single>
-        <title>IP Addresses</title>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:billable asset_type=ip
+            `easm_index`
+            sourcetype=defender:easm:billable_asset
+            billable_type=domain
+            | stats count
+          </query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <title>IP Addresses</title>
+      <single>
+        <search>
+          <query>
+            `easm_index`
+            sourcetype=defender:easm:billable_asset
+            billable_type=ip
             | stats count
           </query>
           <earliest>$time.earliest$</earliest>
@@ -79,15 +90,18 @@
     </panel>
   </row>
 
-  <!-- 30-Day Trend -->
+  <!-- ========================= -->
+  <!-- BILLABLE ASSET TREND -->
+  <!-- ========================= -->
   <row>
     <panel>
+      <title>Billable Assets Over Time</title>
       <chart>
-        <title>Billable Assets – 30 Day Trend</title>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:billable
-            | timechart span=1d count by asset_type
+            `easm_index`
+            sourcetype=defender:easm:billable_asset
+            | timechart span=1d count by billable_type
           </query>
           <earliest>$time.earliest$</earliest>
           <latest>$time.latest$</latest>
@@ -99,21 +113,29 @@
     </panel>
   </row>
 
-  <!-- Detail Table -->
+  <!-- ========================= -->
+  <!-- BILLABLE ASSET DETAILS -->
+  <!-- ========================= -->
   <row>
     <panel>
+      <title>Billable Asset Details</title>
       <table>
-        <title>Billable Asset Details</title>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:billable
-            | table _time asset_type asset_name ip_address domain host
-            | sort -_time
+            `easm_index`
+            sourcetype=defender:easm:billable_asset
+            | table
+                _time
+                billable_type
+                asset_type
+                easm_id
+            | sort - _time
           </query>
           <earliest>$time.earliest$</earliest>
           <latest>$time.latest$</latest>
         </search>
         <option name="count">20</option>
+        <option name="wrap">true</option>
       </table>
     </panel>
   </row>
