@@ -4,8 +4,10 @@
 
 <dashboard version="1.1">
   <label>Attack Surface Summary</label>
+
   <description>
-    Summary of exposure insights and attack surface risk derived from Microsoft Defender External Attack Surface Management.
+    Summary of exposure insights and attack surface risk derived from
+    Microsoft Defender External Attack Surface Management.
   </description>
 
   <!-- ===================================================== -->
@@ -82,6 +84,7 @@
             `easm_index`
             sourcetype=defender:easm:exposure_insight
             | stats count by asset_type
+            | sort - count
           </query>
         </search>
         <option name="charting.chart">pie</option>
