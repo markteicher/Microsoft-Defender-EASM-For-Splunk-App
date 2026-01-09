@@ -1,0 +1,195 @@
+<!-- defender_easm_cwe_top25.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- Dashboard: CWE Top 25 -->
+
+<dashboard version="1.1">
+  <label>CWE Top 25</label>
+  <description>
+    Exposure insights mapped to the CWE Top 25 Most Dangerous Software Weaknesses
+    as identified by Microsoft Defender External Attack Surface Management.
+  </description>
+
+  <!-- ========================= -->
+  <!-- TIME PICKER -->
+  <!-- ========================= -->
+  <fieldset submitButton="false">
+    <input type="time" token="time">
+      <label>Time Range</label>
+      <default>
+        <earliest>-30d@d</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+
+  <!-- ========================= -->
+  <!-- SUMMARY KPIs -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Total CWE Top 25 Findings</title>
+      <single>
+        <search>
+          <query>
+            `easm_index`
+            sourcetype=defender:easm:exposure_insight
+            cwe_id=*
+            | stats count
+          </query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="unit">Findings</option>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Critical CWE Findings</title>
+      <single>
+        <search>
+          <query>
+            `easm_index`
+            sourcetype=defender:easm:exposure_insight
+            cwe_id=*
+            severity=Critical
+            | stats count
+          </query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <title>High CWE Findings</title>
+      <single>
+        <search>
+          <query>
+            `easm_index`
+            sourcetype=defender:easm:exposure_insight
+            cwe_id=*
+            severity=High
+            | stats count
+          </query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Assets Impacted</title>
+      <single>
+        <search>
+          <query>
+            `easm_index`
+            sourcetype=defender:easm:exposure_insight
+            cwe_id=*
+            | stats dc(easm_id)
+          </query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+      </single>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- CWE DISTRIBUTION -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>CWE Top 25 Findings by CWE</title>
+      <chart>
+        <search>
+          <query>
+            `easm_index`
+            sourcetype=defender:easm:exposure_insight
+            cwe_id=*
+            | stats count by cwe_id
+            | sort - count
+            | head 25
+          </query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.axisTitleX.text">CWE ID</option>
+        <option name="charting.axisTitleY.text">Findings</option>
+        <option name="charting.legend.placement">none</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- SEVERITY DISTRIBUTION -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>CWE Findings by Severity</title>
+      <chart>
+        <search>
+          <query>
+            `easm_index`
+            sourcetype=defender:easm:exposure_insight
+            cwe_id=*
+            | stats count by severity
+          </query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- TREND -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>CWE Top 25 Trend Over Time</title>
+      <chart>
+        <search>
+          <query>
+            `easm_index`
+            sourcetype=defender:easm:exposure_insight
+            cwe_id=*
+            | timechart span=1d count by severity
+          </query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- TOP AFFECTED ASSETS -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Top Assets by CWE Exposure</title>
+      <table>
+        <search>
+          <query>
+            `easm_index`
+            sourcetype=defender:easm:exposure_insight
+            cwe_id=*
+            | stats count by easm_id cwe_id
+            | sort - count
+            | head 15
+          </query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="count">15</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+
+</dashboard>
