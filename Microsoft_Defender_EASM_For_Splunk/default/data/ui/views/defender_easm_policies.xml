@@ -7,27 +7,31 @@
 
   <description>
     Visibility into Microsoft Defender EASM Policy Engine execution, including
-    exposure insight generation, affected assets, and trend analysis.
+    exposure insight generation, affected assets, and execution trends.
   </description>
 
-  <!-- Base Search -->
-  <search id="base_search">
+  <!-- ===================== -->
+  <!-- BASE SEARCH -->
+  <!-- ===================== -->
+
+  <search id="base_policy_eval">
     <query>
-      index=security_defender_easm
+      `easm_index`
       sourcetype=defender:easm:policy_evaluation
     </query>
-    <earliest>-30d</earliest>
+    <earliest>-30d@d</earliest>
     <latest>now</latest>
   </search>
 
   <!-- ===================== -->
   <!-- POLICY COUNTS SUMMARY -->
   <!-- ===================== -->
+
   <row>
     <panel>
       <title>Policy Hit Counts</title>
       <table>
-        <search base="base_search">
+        <search base="base_policy_eval">
           <query>
             | stats count AS policy_hits BY policyId policyName severity
             | sort - policy_hits
@@ -43,6 +47,7 @@
         </drilldown>
 
         <option name="count">15</option>
+        <option name="wrap">true</option>
       </table>
     </panel>
   </row>
@@ -50,13 +55,14 @@
   <!-- ===================== -->
   <!-- EXPOSURE INSIGHTS -->
   <!-- ===================== -->
+
   <row>
     <panel>
       <title>Exposure Insights by Policy</title>
       <table>
-        <search base="base_search">
+        <search base="base_policy_eval">
           <query>
-            | stats count AS insight_count BY policyId policyName exposureInsight priority
+            | stats count AS insight_count BY policyId policyName exposureInsight severity
             | sort - insight_count
           </query>
         </search>
@@ -77,11 +83,12 @@
   <!-- ===================== -->
   <!-- AFFECTED ASSETS -->
   <!-- ===================== -->
+
   <row>
     <panel>
       <title>Affected Assets by Policy</title>
       <table>
-        <search base="base_search">
+        <search base="base_policy_eval">
           <query>
             | stats count AS affected_assets BY policyId policyName assetType
             | sort - affected_assets
@@ -97,6 +104,7 @@
         </drilldown>
 
         <option name="count">15</option>
+        <option name="wrap">true</option>
       </table>
     </panel>
   </row>
@@ -104,11 +112,12 @@
   <!-- ===================== -->
   <!-- POLICY TREND -->
   <!-- ===================== -->
+
   <row>
     <panel>
       <title>Policy Hit Trend (30 Days)</title>
       <chart>
-        <search base="base_search">
+        <search base="base_policy_eval">
           <query>
             | timechart span=1d count BY policyName
           </query>
