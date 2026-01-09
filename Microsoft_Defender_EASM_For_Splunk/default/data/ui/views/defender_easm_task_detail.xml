@@ -6,18 +6,19 @@
   <label>Task Detail</label>
 
   <description>
-    Detailed execution view for a single Defender EASM task.
+    Detailed execution view for a single Microsoft Defender EASM task,
+    including timing, status transitions, and error diagnostics.
   </description>
 
   <!-- ========================= -->
-  <!-- Drilldown Token -->
+  <!-- DRILLDOWN TOKEN -->
   <!-- ========================= -->
   <init>
     <set token="task_id">$task_id$</set>
   </init>
 
   <!-- ========================= -->
-  <!-- Task Overview -->
+  <!-- TASK OVERVIEW -->
   <!-- ========================= -->
   <row>
     <panel>
@@ -25,18 +26,32 @@
       <table>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:task taskId="$task_id$"
-            | eval duration_seconds = round((endTime - startTime),2)
-            | table taskId taskType status duration_seconds startTime endTime createdBy
+            `easm_index`
+            sourcetype=defender:easm:task
+            taskId="$task_id$"
+            | eval
+                start_epoch=strptime(startTime,"%Y-%m-%dT%H:%M:%S"),
+                end_epoch=strptime(endTime,"%Y-%m-%dT%H:%M:%S")
+            | eval
+                duration_seconds=if(isnull(end_epoch),null(),round(end_epoch-start_epoch,2))
+            | table
+                taskId
+                taskType
+                status
+                duration_seconds
+                startTime
+                endTime
+                createdBy
           </query>
         </search>
         <option name="wrap">true</option>
+        <option name="count">1</option>
       </table>
     </panel>
   </row>
 
   <!-- ========================= -->
-  <!-- Task Status Timeline -->
+  <!-- TASK STATUS TIMELINE -->
   <!-- ========================= -->
   <row>
     <panel>
@@ -44,18 +59,22 @@
       <chart>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:task taskId="$task_id$"
+            `easm_index`
+            sourcetype=defender:easm:task
+            taskId="$task_id$"
             | timechart span=5m count by status
           </query>
         </search>
         <option name="charting.chart">line</option>
-        <option name="legend.placement">right</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.axisTitleX.text">Time</option>
+        <option name="charting.axisTitleY.text">Status Events</option>
       </chart>
     </panel>
   </row>
 
   <!-- ========================= -->
-  <!-- Failure Details (Conditional) -->
+  <!-- FAILURE DETAILS -->
   <!-- ========================= -->
   <row>
     <panel>
@@ -63,17 +82,24 @@
       <table>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:task taskId="$task_id$" status="Failed"
-            | table failureReason errorCode errorMessage
+            `easm_index`
+            sourcetype=defender:easm:task
+            taskId="$task_id$"
+            | where status="Failed" OR status="Error"
+            | table
+                failureReason
+                errorCode
+                errorMessage
           </query>
         </search>
         <option name="wrap">true</option>
+        <option name="count">5</option>
       </table>
     </panel>
   </row>
 
   <!-- ========================= -->
-  <!-- Raw Task Payload -->
+  <!-- RAW TASK EVENT -->
   <!-- ========================= -->
   <row>
     <panel>
@@ -81,10 +107,13 @@
       <event>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:task taskId="$task_id$"
+            `easm_index`
+            sourcetype=defender:easm:task
+            taskId="$task_id$"
           </query>
         </search>
         <option name="list.drilldown">none</option>
+        <option name="maxLines">200</option>
       </event>
     </panel>
   </row>
