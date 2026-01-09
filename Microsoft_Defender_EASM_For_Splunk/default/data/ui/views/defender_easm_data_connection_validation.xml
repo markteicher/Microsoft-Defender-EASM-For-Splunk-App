@@ -1,66 +1,120 @@
 <!-- defender_easm_data_connection_validation.xml -->
 <!-- Microsoft Defender EASM for Splunk App -->
 <!-- Dashboard: Data Connection Validation -->
+<!-- Source: Defender EASM data-plane validate-data-connection API -->
 
 <dashboard version="1.1">
   <label>Data Connection Validation</label>
   <description>
-    Validate Microsoft Defender EASM data connections using the data-plane
-    validate-data-connection API. Displays validation status, errors, warnings,
-    and historical validation results.
+    Validation results for Microsoft Defender EASM data connections.
+    Displays validation status, errors, warnings, and historical outcomes
+    returned by the validate-data-connection API.
   </description>
 
+  <!-- ========================= -->
+  <!-- LATEST VALIDATION RESULT -->
+  <!-- ========================= -->
   <row>
     <panel>
-      <title>Latest Validation Status</title>
+      <title>Latest Validation Result</title>
       <table>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:data_connection_validation
-            | sort - validation_time
+            `easm_index`
+            sourcetype=defender:easm:data_connection_validation
+            | sort -validationTime
             | head 1
-            | table validation_time connection_name connection_type is_valid
+            | table
+                validationTime
+                connectionName
+                connectionType
+                isValid
+                validationMessage
           </query>
           <earliest>-7d</earliest>
           <latest>now</latest>
         </search>
-        <option name="count">5</option>
+        <option name="wrap">true</option>
       </table>
     </panel>
   </row>
 
+  <!-- ========================= -->
+  <!-- VALIDATION HISTORY -->
+  <!-- ========================= -->
   <row>
     <panel>
-      <title>Validation Results (Last 30 Days)</title>
+      <title>Validation History (Last 30 Days)</title>
       <table>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:data_connection_validation
-            | eval status=if(is_valid="true","VALID","FAILED")
-            | table validation_time connection_name connection_type status error_code error_message warning_message validated_by
-            | sort - validation_time
+            `easm_index`
+            sourcetype=defender:easm:data_connection_validation
+            | eval validationStatus=if(isValid=true,"VALID","FAILED")
+            | table
+                validationTime
+                connectionName
+                connectionType
+                validationStatus
+                errorCode
+                errorMessage
+                warningMessage
+            | sort -validationTime
           </query>
-          <earliest>-30d</earliest>
+          <earliest>-30d@d</earliest>
           <latest>now</latest>
         </search>
         <option name="count">20</option>
+        <option name="wrap">true</option>
       </table>
     </panel>
   </row>
 
+  <!-- ========================= -->
+  <!-- FAILURE ANALYSIS -->
+  <!-- ========================= -->
   <row>
     <panel>
       <title>Validation Failures by Error Code</title>
       <chart>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:data_connection_validation
-            is_valid=false
-            | stats count by error_code
-            | sort - count
+            `easm_index`
+            sourcetype=defender:easm:data_connection_validation
+            isValid=false
+            | stats count by errorCode
+            | sort -count
           </query>
-          <earliest>-30d</earliest>
+          <earliest>-30d@d</earliest>
           <latest>now</latest>
         </search>
-        <option name="charting.chart">bar</option>
-        <option name="charting.axis
+        <option name="charting.chart">column</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- VALIDATION TREND -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Validation Results Over Time</title>
+      <chart>
+        <search>
+          <query>
+            `easm_index`
+            sourcetype=defender:easm:data_connection_validation
+            | eval status=if(isValid=true,"Valid","Failed")
+            | timechart span=1d count by status
+          </query>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+
+</dashboard>
