@@ -1,0 +1,119 @@
+<!-- defender_easm_health.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- Platform & Ingestion Health Monitoring -->
+
+<dashboard version="1.1">
+  <label>Health</label>
+  <description>
+    Platform health, API availability, ingestion freshness, and operational status
+    for Microsoft Defender EASM.
+  </description>
+
+  <!-- BASE SEARCH -->
+  <search>
+    <query>
+      index=security_defender_easm
+      sourcetype=defender:easm:health
+    </query>
+    <earliest>-24h@h</earliest>
+    <latest>now</latest>
+  </search>
+
+  <!-- HEALTH KPIs -->
+  <row>
+    <panel>
+      <title>Overall Health Status</title>
+      <single>
+        <search>
+          <query>
+            | stats latest(status) AS health_status
+          </query>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Last Successful Collection</title>
+      <single>
+        <search>
+          <query>
+            | stats latest(lastSuccessTime) AS last_success
+          </query>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Failed Collections (24h)</title>
+      <single>
+        <search>
+          <query>
+            | where status="Failed"
+            | stats count
+          </query>
+        </search>
+      </single>
+    </panel>
+  </row>
+
+  <!-- COMPONENT STATUS -->
+  <row>
+    <panel>
+      <title>Component Health Status</title>
+      <table>
+        <search>
+          <query>
+            | table
+                componentName
+                status
+                lastCheckedTime
+                errorCode
+                errorMessage
+          </query>
+        </search>
+        <option name="count">15</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- HEALTH TREND -->
+  <row>
+    <panel>
+      <title>Health Status Over Time</title>
+      <chart>
+        <search>
+          <query>
+            | eval status_numeric=case(
+                status="Healthy",1,
+                status="Degraded",2,
+                status="Failed",3
+              )
+            | timechart span=1h max(status_numeric)
+          </query>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.legend.placement">none</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- RECENT ERRORS -->
+  <row>
+    <panel>
+      <title>Recent Health Errors</title>
+      <table>
+        <search>
+          <query>
+            | where status="Failed"
+            | table _time componentName errorCode errorMessage
+            | sort _time desc
+          </query>
+        </search>
+        <option name="count">20</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+
+</dashboard>
