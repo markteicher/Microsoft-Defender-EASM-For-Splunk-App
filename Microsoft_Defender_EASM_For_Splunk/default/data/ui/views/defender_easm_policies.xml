@@ -1,42 +1,124 @@
 <!-- defender_easm_policies.xml -->
 <!-- Microsoft Defender EASM for Splunk App -->
-<!-- Defender EASM Policy Engine visibility -->
+<!-- Policy Engine visibility: counts, impact, assets, and trends -->
 
 <dashboard version="1.1">
   <label>Policies</label>
 
   <description>
-    Policies used by Microsoft Defender EASM to evaluate external attack surface risk,
-    prioritize findings, and generate exposure insights.
+    Visibility into Microsoft Defender EASM Policy Engine execution, including
+    exposure insight generation, affected assets, and trend analysis.
   </description>
 
-  <search>
+  <!-- Base Search -->
+  <search id="base_search">
     <query>
       index=security_defender_easm
-      sourcetype=defender:easm:policy
-      | eval policyStatus=coalesce(status,"Unknown")
-      | eval severity=coalesce(severity,"Informational")
-      | table
-          policyId
-          policyName
-          policyCategory
-          severity
-          policyStatus
-          affectedAssetTypes
-          description
-          lastUpdatedTime
+      sourcetype=defender:easm:policy_evaluation
     </query>
-    <earliest>-7d</earliest>
+    <earliest>-30d</earliest>
     <latest>now</latest>
   </search>
 
+  <!-- ===================== -->
+  <!-- POLICY COUNTS SUMMARY -->
+  <!-- ===================== -->
   <row>
     <panel>
-      <title>Defender EASM Policies</title>
+      <title>Policy Hit Counts</title>
       <table>
-        <option name="count">20</option>
+        <search base="base_search">
+          <query>
+            | stats count AS policy_hits BY policyId policyName severity
+            | sort - policy_hits
+          </query>
+        </search>
+
+        <drilldown>
+          <link>
+            <![CDATA[
+              /app/microsoft_defender_easm/defender_easm_policy_detail?policy_id=$row.policyId$
+            ]]>
+          </link>
+        </drilldown>
+
+        <option name="count">15</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- ===================== -->
+  <!-- EXPOSURE INSIGHTS -->
+  <!-- ===================== -->
+  <row>
+    <panel>
+      <title>Exposure Insights by Policy</title>
+      <table>
+        <search base="base_search">
+          <query>
+            | stats count AS insight_count BY policyId policyName exposureInsight priority
+            | sort - insight_count
+          </query>
+        </search>
+
+        <drilldown>
+          <link>
+            <![CDATA[
+              /app/microsoft_defender_easm/defender_easm_exposure_insights?policy_id=$row.policyId$
+            ]]>
+          </link>
+        </drilldown>
+
         <option name="wrap">true</option>
       </table>
+    </panel>
+  </row>
+
+  <!-- ===================== -->
+  <!-- AFFECTED ASSETS -->
+  <!-- ===================== -->
+  <row>
+    <panel>
+      <title>Affected Assets by Policy</title>
+      <table>
+        <search base="base_search">
+          <query>
+            | stats count AS affected_assets BY policyId policyName assetType
+            | sort - affected_assets
+          </query>
+        </search>
+
+        <drilldown>
+          <link>
+            <![CDATA[
+              /app/microsoft_defender_easm/defender_easm_assets?policy_id=$row.policyId$&asset_type=$row.assetType$
+            ]]>
+          </link>
+        </drilldown>
+
+        <option name="count">15</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- ===================== -->
+  <!-- POLICY TREND -->
+  <!-- ===================== -->
+  <row>
+    <panel>
+      <title>Policy Hit Trend (30 Days)</title>
+      <chart>
+        <search base="base_search">
+          <query>
+            | timechart span=1d count BY policyName
+          </query>
+        </search>
+
+        <option name="charting.chart">line</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.axisTitleX.text">Date</option>
+        <option name="charting.axisTitleY.text">Policy Hits</option>
+      </chart>
     </panel>
   </row>
 
