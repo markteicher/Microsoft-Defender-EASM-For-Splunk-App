@@ -1,0 +1,128 @@
+<!-- defender_easm_inventory.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- General → Inventory -->
+
+<dashboard version="1.1">
+  <label>Inventory</label>
+  <description>
+    Unified inventory of assets discovered by Microsoft Defender External Attack Surface Management.
+    Provides visibility into asset types, volume, and discovery trends.
+  </description>
+
+  <!-- ========================= -->
+  <!-- INVENTORY SUMMARY KPIs -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Total Assets</title>
+      <single>
+        <search>
+          <query>
+            `easm_index`
+            sourcetype=defender:easm:asset
+            | stats count
+          </query>
+        </search>
+        <option name="unit">assets</option>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Asset Types</title>
+      <single>
+        <search>
+          <query>
+            `easm_index`
+            sourcetype=defender:easm:asset
+            | stats dc(asset_type)
+          </query>
+        </search>
+        <option name="unit">types</option>
+      </single>
+    </panel>
+
+    <panel>
+      <title>New Assets (30d)</title>
+      <single>
+        <search>
+          <query>
+            `easm_index`
+            sourcetype=defender:easm:asset
+            | where _time &gt; relative_time(now(), "-30d")
+            | stats count
+          </query>
+        </search>
+      </single>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- ASSET TYPE DISTRIBUTION -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Assets by Type</title>
+      <chart>
+        <search>
+          <query>
+            `easm_index`
+            sourcetype=defender:easm:asset
+            | stats count by asset_type
+            | sort - count
+          </query>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- INVENTORY GROWTH -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Inventory Growth Over Time</title>
+      <chart>
+        <search>
+          <query>
+            `easm_index`
+            sourcetype=defender:easm:asset
+            | timechart span=1d count
+          </query>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.legend.placement">none</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- ASSET INVENTORY TABLE -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Asset Inventory</title>
+      <table>
+        <search>
+          <query>
+            `easm_index`
+            sourcetype=defender:easm:asset
+            | table
+                _time
+                asset_type
+                easm_id
+                display_name
+                discovery_source
+                confidence
+            | sort - _time
+          </query>
+        </search>
+        <option name="count">25</option>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">true</option>
+      </table>
+    </panel>
+  </row>
+
+</dashboard>
