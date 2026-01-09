@@ -1,0 +1,157 @@
+<!-- defender_easm_privileged_activity.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- Privileged Role Activity Spotlight -->
+
+<dashboard version="1.1">
+  <label>Privileged Role Activity</label>
+  <description>
+    Spotlight on activity performed by privileged users (Owner, Contributor, Security Admin)
+    across Microsoft Defender External Attack Surface Management.
+  </description>
+
+  <!-- BASE SEARCH -->
+  <search>
+    <query>
+      index=security_defender_easm
+      sourcetype=azure:activitylog
+      | eval user=coalesce(caller, initiatedBy)
+      | eval role=coalesce(roleName, assignedRole)
+      | where role IN ("Owner","Contributor","Security Admin","Security Reader")
+      | eval action=operationName
+      | eval result=coalesce(status, resultType)
+    </query>
+    <earliest>-90d@d</earliest>
+    <latest>now</latest>
+  </search>
+
+  <!-- KPI ROW -->
+  <row>
+    <panel>
+      <title>Total Privileged Actions</title>
+      <single>
+        <search>
+          <query>
+            | stats count
+          </query>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Privileged Users</title>
+      <single>
+        <search>
+          <query>
+            | stats dc(user)
+          </query>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Distinct Privileged Roles</title>
+      <single>
+        <search>
+          <query>
+            | stats dc(role)
+          </query>
+        </search>
+      </single>
+    </panel>
+  </row>
+
+  <!-- TOP PRIVILEGED USERS -->
+  <row>
+    <panel>
+      <title>Top Privileged Users by Activity</title>
+      <table>
+        <search>
+          <query>
+            | stats count AS action_count by user role
+            | sort -action_count
+            | head 10
+          </query>
+        </search>
+
+        <drilldown>
+          <link>
+            <![CDATA[
+              /app/microsoft_defender_easm/defender_easm_user_activity_detail?form.user=$row.user$
+            ]]>
+          </link>
+        </drilldown>
+
+        <option name="count">10</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- ROLE DISTRIBUTION -->
+  <row>
+    <panel>
+      <title>Activity by Privileged Role</title>
+      <chart>
+        <search>
+          <query>
+            | stats count by role
+          </query>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ACTION TYPES -->
+  <row>
+    <panel>
+      <title>Privileged Actions Performed</title>
+      <table>
+        <search>
+          <query>
+            | stats count by action
+            | sort -count
+          </query>
+        </search>
+        <option name="count">15</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- TIME-BASED ACTIVITY -->
+  <row>
+    <panel>
+      <title>Privileged Activity Over Time</title>
+      <chart>
+        <search>
+          <query>
+            | timechart span=1d count by role
+          </query>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- RECENT HIGH-RISK ACTIONS -->
+  <row>
+    <panel>
+      <title>Recent Privileged Actions</title>
+      <table>
+        <search>
+          <query>
+            | eval target=coalesce(resourceId, entityId)
+            | table _time user role action target result
+            | sort _time desc
+          </query>
+        </search>
+        <option name="count">20</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+
+</dashboard>
