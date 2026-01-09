@@ -7,13 +7,16 @@
 
   <description>
     Spotlight on actions performed by privileged users (Owner, Contributor, Security Admin)
-    across Microsoft Defender External Attack Surface Management.
+    related to Microsoft Defender External Attack Surface Management.
   </description>
 
+  <!-- ========================= -->
   <!-- BASE SEARCH -->
-  <search>
+  <!-- ========================= -->
+
+  <search id="base_privileged_activity">
     <query>
-      index=security_defender_easm
+      `easm_index`
       sourcetype=azure:activitylog
       | eval user=coalesce(caller, initiatedBy)
       | eval role=coalesce(roleName, assignedRole)
@@ -25,15 +28,16 @@
     <latest>now</latest>
   </search>
 
+  <!-- ========================= -->
   <!-- KPI ROW -->
+  <!-- ========================= -->
+
   <row>
     <panel>
       <title>⚠️ Total Privileged Actions</title>
       <single>
-        <search>
-          <query>
-            | stats count
-          </query>
+        <search base="base_privileged_activity">
+          <query>| stats count</query>
         </search>
       </single>
     </panel>
@@ -41,10 +45,8 @@
     <panel>
       <title>👤 Privileged Users</title>
       <single>
-        <search>
-          <query>
-            | stats dc(user)
-          </query>
+        <search base="base_privileged_activity">
+          <query>| stats dc(user)</query>
         </search>
       </single>
     </panel>
@@ -52,24 +54,25 @@
     <panel>
       <title>🛡️ Privileged Roles</title>
       <single>
-        <search>
-          <query>
-            | stats dc(role)
-          </query>
+        <search base="base_privileged_activity">
+          <query>| stats dc(role)</query>
         </search>
       </single>
     </panel>
   </row>
 
+  <!-- ========================= -->
   <!-- TOP PRIVILEGED USERS -->
+  <!-- ========================= -->
+
   <row>
     <panel>
       <title>👥 Top Privileged Users by Activity</title>
       <table>
-        <search>
+        <search base="base_privileged_activity">
           <query>
-            | stats count AS action_count by user role
-            | sort -action_count
+            | stats count AS action_count BY user role
+            | sort - action_count
             | head 10
           </query>
         </search>
@@ -88,14 +91,17 @@
     </panel>
   </row>
 
+  <!-- ========================= -->
   <!-- ROLE DISTRIBUTION -->
+  <!-- ========================= -->
+
   <row>
     <panel>
       <title>🧭 Activity by Privileged Role</title>
       <chart>
-        <search>
+        <search base="base_privileged_activity">
           <query>
-            | stats count by role
+            | stats count BY role
           </query>
         </search>
         <option name="charting.chart">column</option>
@@ -104,15 +110,18 @@
     </panel>
   </row>
 
+  <!-- ========================= -->
   <!-- ACTION TYPES -->
+  <!-- ========================= -->
+
   <row>
     <panel>
       <title>📋 Privileged Actions Performed</title>
       <table>
-        <search>
+        <search base="base_privileged_activity">
           <query>
-            | stats count by action
-            | sort -count
+            | stats count BY action
+            | sort - count
           </query>
         </search>
         <option name="count">15</option>
@@ -121,14 +130,17 @@
     </panel>
   </row>
 
+  <!-- ========================= -->
   <!-- TIME-BASED ACTIVITY -->
+  <!-- ========================= -->
+
   <row>
     <panel>
       <title>📈 Privileged Activity Over Time</title>
       <chart>
-        <search>
+        <search base="base_privileged_activity">
           <query>
-            | timechart span=1d count by role
+            | timechart span=1d count BY role
           </query>
         </search>
         <option name="charting.chart">line</option>
@@ -137,16 +149,19 @@
     </panel>
   </row>
 
-  <!-- RECENT HIGH-RISK ACTIONS -->
+  <!-- ========================= -->
+  <!-- RECENT PRIVILEGED ACTIONS -->
+  <!-- ========================= -->
+
   <row>
     <panel>
       <title>🚨 Recent Privileged Actions</title>
       <table>
-        <search>
+        <search base="base_privileged_activity">
           <query>
             | eval target=coalesce(resourceId, entityId)
             | table _time user role action target result
-            | sort _time desc
+            | sort - _time
           </query>
         </search>
         <option name="count">20</option>
