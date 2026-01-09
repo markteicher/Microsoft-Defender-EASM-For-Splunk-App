@@ -29,18 +29,19 @@
       <event>
         <search>
           <query>
-            index=security_defender_easm
+            `easm_index`
             (
               sourcetype=azure:activitylog
               OR sourcetype=defender:easm:task
               OR sourcetype=defender:easm:report
               OR sourcetype=defender:easm:policy
             )
-            | eval user=coalesce(caller, initiatedBy, createdBy)
+            | eval user=coalesce(caller, initiatedBy, createdBy, userPrincipalName)
             | search user="$selected_user$"
-            | eval action=coalesce(operationName, taskType, reportType)
+            | eval action=coalesce(operationName, taskType, reportType, policyName)
             | eval target=coalesce(resourceId, entityId, workspaceId)
-            | table _time user action target status resultDescription
+            | eval result=coalesce(status, resultType, outcome, resultDescription)
+            | table _time user action target result
             | sort _time desc
           </query>
           <earliest>-90d@d</earliest>
