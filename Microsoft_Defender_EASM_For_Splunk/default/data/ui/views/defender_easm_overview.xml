@@ -8,6 +8,83 @@
     High-level inventory and attack surface insights derived from Microsoft Defender External Attack Surface Management.
   </description>
 
+  <!-- ========================= -->
+  <!-- BASE SEARCHES -->
+  <!-- ========================= -->
+
+  <search id="base_domains">
+    <query>
+      `easm_index` `easm_domains`
+    </query>
+    <earliest>-30d@d</earliest>
+    <latest>now</latest>
+  </search>
+
+  <search id="base_hosts">
+    <query>
+      `easm_index` `easm_hosts`
+    </query>
+    <earliest>-30d@d</earliest>
+    <latest>now</latest>
+  </search>
+
+  <search id="base_pages">
+    <query>
+      `easm_index` `easm_pages`
+    </query>
+    <earliest>-30d@d</earliest>
+    <latest>now</latest>
+  </search>
+
+  <search id="base_ssl_certificates">
+    <query>
+      `easm_index` `easm_ssl_certificates`
+    </query>
+    <earliest>-30d@d</earliest>
+    <latest>now</latest>
+  </search>
+
+  <search id="base_asns">
+    <query>
+      `easm_index` `easm_asns`
+    </query>
+    <earliest>-30d@d</earliest>
+    <latest>now</latest>
+  </search>
+
+  <search id="base_ip_blocks">
+    <query>
+      `easm_index` `easm_ip_blocks`
+    </query>
+    <earliest>-30d@d</earliest>
+    <latest>now</latest>
+  </search>
+
+  <search id="base_ip_addresses">
+    <query>
+      `easm_index` `easm_ip_addresses`
+    </query>
+    <earliest>-30d@d</earliest>
+    <latest>now</latest>
+  </search>
+
+  <search id="base_whois_contacts">
+    <query>
+      `easm_index` `easm_whois_contacts`
+    </query>
+    <earliest>-30d@d</earliest>
+    <latest>now</latest>
+  </search>
+
+  <search id="base_exposure_insights">
+    <query>
+      `easm_index`
+      sourcetype=defender:easm:exposure_insight
+    </query>
+    <earliest>-30d@d</earliest>
+    <latest>now</latest>
+  </search>
+
   <!-- ===================================================== -->
   <!-- ASSET INVENTORY SUMMARY -->
   <!-- ===================================================== -->
@@ -16,11 +93,8 @@
     <panel>
       <title>Domains</title>
       <single>
-        <search>
-          <query>
-            `easm_index` `easm_domains`
-            | stats count
-          </query>
+        <search base="base_domains">
+          <query>| stats count</query>
         </search>
       </single>
     </panel>
@@ -28,11 +102,8 @@
     <panel>
       <title>Hosts</title>
       <single>
-        <search>
-          <query>
-            `easm_index` `easm_hosts`
-            | stats count
-          </query>
+        <search base="base_hosts">
+          <query>| stats count</query>
         </search>
       </single>
     </panel>
@@ -40,11 +111,8 @@
     <panel>
       <title>Pages</title>
       <single>
-        <search>
-          <query>
-            `easm_index` `easm_pages`
-            | stats count
-          </query>
+        <search base="base_pages">
+          <query>| stats count</query>
         </search>
       </single>
     </panel>
@@ -52,11 +120,8 @@
     <panel>
       <title>SSL Certificates</title>
       <single>
-        <search>
-          <query>
-            `easm_index` `easm_ssl_certificates`
-            | stats count
-          </query>
+        <search base="base_ssl_certificates">
+          <query>| stats count</query>
         </search>
       </single>
     </panel>
@@ -66,11 +131,8 @@
     <panel>
       <title>ASNs</title>
       <single>
-        <search>
-          <query>
-            `easm_index` `easm_asns`
-            | stats count
-          </query>
+        <search base="base_asns">
+          <query>| stats count</query>
         </search>
       </single>
     </panel>
@@ -78,11 +140,8 @@
     <panel>
       <title>IP Blocks</title>
       <single>
-        <search>
-          <query>
-            `easm_index` `easm_ip_blocks`
-            | stats count
-          </query>
+        <search base="base_ip_blocks">
+          <query>| stats count</query>
         </search>
       </single>
     </panel>
@@ -90,11 +149,8 @@
     <panel>
       <title>IP Addresses</title>
       <single>
-        <search>
-          <query>
-            `easm_index` `easm_ip_addresses`
-            | stats count
-          </query>
+        <search base="base_ip_addresses">
+          <query>| stats count</query>
         </search>
       </single>
     </panel>
@@ -102,11 +158,8 @@
     <panel>
       <title>WHOIS Contacts</title>
       <single>
-        <search>
-          <query>
-            `easm_index` `easm_whois_contacts`
-            | stats count
-          </query>
+        <search base="base_whois_contacts">
+          <query>| stats count</query>
         </search>
       </single>
     </panel>
@@ -120,11 +173,9 @@
     <panel>
       <title>High Priority Findings</title>
       <single>
-        <search>
+        <search base="base_exposure_insights">
           <query>
-            `easm_index`
-            sourcetype=defender:easm:exposure_insight
-            severity=High
+            | search severity=High
             | stats count
           </query>
         </search>
@@ -134,11 +185,9 @@
     <panel>
       <title>Medium Priority Findings</title>
       <single>
-        <search>
+        <search base="base_exposure_insights">
           <query>
-            `easm_index`
-            sourcetype=defender:easm:exposure_insight
-            severity=Medium
+            | search severity=Medium
             | stats count
           </query>
         </search>
@@ -148,11 +197,9 @@
     <panel>
       <title>Low Priority Findings</title>
       <single>
-        <search>
+        <search base="base_exposure_insights">
           <query>
-            `easm_index`
-            sourcetype=defender:easm:exposure_insight
-            severity=Low
+            | search severity=Low
             | stats count
           </query>
         </search>
