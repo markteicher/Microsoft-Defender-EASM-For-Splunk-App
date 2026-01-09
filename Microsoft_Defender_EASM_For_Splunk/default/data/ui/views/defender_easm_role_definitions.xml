@@ -1,55 +1,60 @@
 <!-- defender_easm_role_definitions.xml -->
 <!-- Microsoft Defender EASM for Splunk App -->
-<!-- Azure RBAC role definitions + assignment counts -->
+<!-- Azure RBAC role definitions with assignment counts -->
 
 <dashboard version="1.1">
   <label>Role Definitions</label>
 
   <description>
-    Azure RBAC role definitions used by Microsoft Defender EASM and how many principals
-    are assigned to each role across EASM workspaces.
+    Azure RBAC role definitions used by Microsoft Defender EASM and the number
+    of principals assigned to each role across EASM workspaces.
   </description>
 
-  <!-- Role assignment counts -->
-  <search id="role_assignment_counts">
+  <!-- ========================= -->
+  <!-- BASE SEARCH -->
+  <!-- ========================= -->
+  <search id="role_definitions_base">
     <query>
-      index=security_defender_easm
-      sourcetype=defender:easm:rbac:role_assignment
-      | stats count AS assignedPrincipals BY roleDefinitionId
-    </query>
-    <earliest>-7d</earliest>
-    <latest>now</latest>
-  </search>
-
-  <!-- Role definitions enriched with counts -->
-  <search>
-    <query>
-      index=security_defender_easm
+      `easm_index`
       sourcetype=defender:easm:rbac:role_definition
-      | eval roleType=if(isCustomRole==true,"Custom","Built-in")
-      | lookup role_assignment_counts roleDefinitionId OUTPUT assignedPrincipals
-      | eval assignedPrincipals=coalesce(assignedPrincipals,0)
-      | table
-          roleName
-          roleType
-          assignedPrincipals
-          roleDefinitionId
-          description
-          assignableScopes
-          permissions.actions
-          permissions.notActions
-          permissions.dataActions
-          permissions.notDataActions
-          systemData.createdAt
+      | eval roleType=if(isCustomRole=true,"Custom","Built-in")
     </query>
-    <earliest>-7d</earliest>
+    <earliest>-7d@d</earliest>
     <latest>now</latest>
   </search>
 
+  <!-- ========================= -->
+  <!-- ROLE DEFINITIONS TABLE -->
+  <!-- ========================= -->
   <row>
     <panel>
       <title>Defender EASM Role Definitions & Assignment Counts</title>
+
       <table>
+        <search base="role_definitions_base">
+          <query>
+            | join type=left roleDefinitionId [
+                search `easm_index`
+                sourcetype=defender:easm:rbac:role_assignment
+                | stats count AS assignedPrincipals BY roleDefinitionId
+              ]
+            | eval assignedPrincipals=coalesce(assignedPrincipals,0)
+            | table
+                roleName
+                roleType
+                assignedPrincipals
+                roleDefinitionId
+                description
+                assignableScopes
+                permissions.actions
+                permissions.notActions
+                permissions.dataActions
+                permissions.notDataActions
+                systemData.createdAt
+            | sort -assignedPrincipals
+          </query>
+        </search>
+
         <option name="count">20</option>
         <option name="wrap">true</option>
       </table>
