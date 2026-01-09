@@ -1,0 +1,96 @@
+<!-- defender_easm_license.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- License & Entitlement Visibility -->
+
+<dashboard version="1.1">
+  <label>License</label>
+  <description>
+    Visibility into Microsoft Defender EASM licensing, entitlement limits, and usage.
+  </description>
+
+  <!-- BASE SEARCH -->
+  <search>
+    <query>
+      index=security_defender_easm
+      sourcetype=defender:easm:license
+    </query>
+    <earliest>-7d@d</earliest>
+    <latest>now</latest>
+  </search>
+
+  <!-- KPI ROW -->
+  <row>
+    <panel>
+      <title>Total Licensed Assets</title>
+      <single>
+        <search>
+          <query>
+            | stats max(licensedAssetLimit) AS licensed_assets
+          </query>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Assets in Use</title>
+      <single>
+        <search>
+          <query>
+            | stats max(currentAssetCount) AS assets_in_use
+          </query>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Remaining Capacity</title>
+      <single>
+        <search>
+          <query>
+            | stats max(licensedAssetLimit - currentAssetCount) AS remaining_capacity
+          </query>
+        </search>
+      </single>
+    </panel>
+  </row>
+
+  <!-- LICENSE DETAILS -->
+  <row>
+    <panel>
+      <title>License Details</title>
+      <table>
+        <search>
+          <query>
+            | eval utilization_percent=round((currentAssetCount/licensedAssetLimit)*100,2)
+            | table
+                licenseType
+                licensedAssetLimit
+                currentAssetCount
+                utilization_percent
+                subscriptionId
+                expirationDate
+          </query>
+        </search>
+        <option name="count">10</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- UTILIZATION TREND -->
+  <row>
+    <panel>
+      <title>License Utilization Over Time</title>
+      <chart>
+        <search>
+          <query>
+            | timechart span=1d max(currentAssetCount) AS assets_used
+          </query>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.legend.placement">none</option>
+      </chart>
+    </panel>
+  </row>
+
+</dashboard>
