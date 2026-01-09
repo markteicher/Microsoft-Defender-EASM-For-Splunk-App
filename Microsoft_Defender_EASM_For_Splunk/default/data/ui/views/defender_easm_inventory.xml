@@ -1,9 +1,12 @@
-<!-- defender_easm_inventory.xml -->
-<!-- Microsoft Defender EASM for Splunk App -->
-<!-- General → Inventory -->
+<!--
+  File: defender_easm_inventory.xml
+  Microsoft Defender EASM for Splunk App
+  General → Inventory
+-->
 
 <dashboard version="1.1">
   <label>Inventory</label>
+
   <description>
     Unified inventory of assets discovered by Microsoft Defender External Attack Surface Management.
     Assets are grouped by native EASM asset types.
@@ -100,7 +103,7 @@
   </row>
 
   <!-- ========================= -->
-  <!-- DNS RECORDS (NEW) -->
+  <!-- DNS RECORDS -->
   <!-- ========================= -->
   <row>
 
@@ -135,15 +138,25 @@
             | sort - _time
           </query>
         </search>
+
         <option name="count">15</option>
         <option name="wrap">true</option>
+
+        <!-- Drilldown: DNS Record → Asset Detail -->
+        <drilldown>
+          <link>
+            <target>defender_easm_asset_detail</target>
+            <arg name="form.easm_id">$row.easm_id$</arg>
+          </link>
+        </drilldown>
+
       </table>
     </panel>
 
   </row>
 
   <!-- ========================= -->
-  <!-- ASSET INVENTORY TABLE -->
+  <!-- ASSET INVENTORY (ALL TYPES) -->
   <!-- ========================= -->
   <row>
     <panel>
@@ -153,20 +166,30 @@
           <query>
             `easm_index`
             `easm_assets_sourcetypes`
+            | eval asset_type=coalesce(asset_type, assetType, sourcetype)
             | table
                 _time
-                sourcetype
-                easm_id
                 asset_type
+                easm_id
                 domain
                 host
                 ip_address
             | sort - _time
           </query>
         </search>
+
         <option name="count">25</option>
         <option name="wrap">true</option>
         <option name="rowNumbers">true</option>
+
+        <!-- Drilldown: Inventory → Asset Detail -->
+        <drilldown>
+          <link>
+            <target>defender_easm_asset_detail</target>
+            <arg name="form.easm_id">$row.easm_id$</arg>
+          </link>
+        </drilldown>
+
       </table>
     </panel>
   </row>
