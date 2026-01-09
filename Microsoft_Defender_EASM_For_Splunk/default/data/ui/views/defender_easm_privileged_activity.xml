@@ -3,9 +3,10 @@
 <!-- Privileged Role Activity Spotlight -->
 
 <dashboard version="1.1">
-  <label>Privileged Role Activity</label>
+  <label>🔐 Privileged Role Activity</label>
+
   <description>
-    Spotlight on activity performed by privileged users (Owner, Contributor, Security Admin)
+    Spotlight on actions performed by privileged users (Owner, Contributor, Security Admin)
     across Microsoft Defender External Attack Surface Management.
   </description>
 
@@ -27,7 +28,7 @@
   <!-- KPI ROW -->
   <row>
     <panel>
-      <title>Total Privileged Actions</title>
+      <title>⚠️ Total Privileged Actions</title>
       <single>
         <search>
           <query>
@@ -38,7 +39,7 @@
     </panel>
 
     <panel>
-      <title>Privileged Users</title>
+      <title>👤 Privileged Users</title>
       <single>
         <search>
           <query>
@@ -49,7 +50,7 @@
     </panel>
 
     <panel>
-      <title>Distinct Privileged Roles</title>
+      <title>🛡️ Privileged Roles</title>
       <single>
         <search>
           <query>
@@ -63,7 +64,7 @@
   <!-- TOP PRIVILEGED USERS -->
   <row>
     <panel>
-      <title>Top Privileged Users by Activity</title>
+      <title>👥 Top Privileged Users by Activity</title>
       <table>
         <search>
           <query>
@@ -90,7 +91,7 @@
   <!-- ROLE DISTRIBUTION -->
   <row>
     <panel>
-      <title>Activity by Privileged Role</title>
+      <title>🧭 Activity by Privileged Role</title>
       <chart>
         <search>
           <query>
@@ -106,7 +107,7 @@
   <!-- ACTION TYPES -->
   <row>
     <panel>
-      <title>Privileged Actions Performed</title>
+      <title>📋 Privileged Actions Performed</title>
       <table>
         <search>
           <query>
@@ -123,7 +124,7 @@
   <!-- TIME-BASED ACTIVITY -->
   <row>
     <panel>
-      <title>Privileged Activity Over Time</title>
+      <title>📈 Privileged Activity Over Time</title>
       <chart>
         <search>
           <query>
@@ -139,7 +140,7 @@
   <!-- RECENT HIGH-RISK ACTIONS -->
   <row>
     <panel>
-      <title>Recent Privileged Actions</title>
+      <title>🚨 Recent Privileged Actions</title>
       <table>
         <search>
           <query>
