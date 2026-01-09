@@ -18,7 +18,8 @@
       <chart>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:task
+            `easm_index`
+            sourcetype=defender:easm:task
             | stats count by status
           </query>
         </search>
@@ -37,9 +38,14 @@
       <chart>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:task
-            | eval duration_seconds = round((endTime - startTime),2)
-            | timechart span=1h avg(duration_seconds)
+            `easm_index`
+            sourcetype=defender:easm:task
+            | eval
+                start_epoch=strptime(startTime,"%Y-%m-%dT%H:%M:%S"),
+                end_epoch=strptime(endTime,"%Y-%m-%dT%H:%M:%S")
+            | where isnotnull(end_epoch)
+            | eval duration_seconds=round(end_epoch-start_epoch,2)
+            | timechart span=1h avg(duration_seconds) AS avg_duration_seconds
           </query>
         </search>
         <option name="charting.chart">line</option>
@@ -57,9 +63,22 @@
       <table>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:task
-            | eval duration_seconds = round((endTime - startTime),2)
-            | table taskId taskType status duration_seconds startTime endTime createdBy
+            `easm_index`
+            sourcetype=defender:easm:task
+            | eval
+                start_epoch=strptime(startTime,"%Y-%m-%dT%H:%M:%S"),
+                end_epoch=strptime(endTime,"%Y-%m-%dT%H:%M:%S")
+            | eval
+                duration_seconds=if(isnull(end_epoch),null(),round(end_epoch-start_epoch,2))
+            | table
+                taskId
+                taskType
+                status
+                duration_seconds
+                startTime
+                endTime
+                createdBy
+            | sort -startTime
           </query>
         </search>
 
@@ -87,8 +106,16 @@
       <table>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:task status="Failed"
-            | table taskId taskType failureReason errorCode startTime endTime
+            `easm_index`
+            sourcetype=defender:easm:task
+            | where status="Failed" OR status="Error"
+            | table
+                taskId
+                taskType
+                failureReason
+                errorCode
+                startTime
+                endTime
           </query>
         </search>
         <option name="wrap">true</option>
