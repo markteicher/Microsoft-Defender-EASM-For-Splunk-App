@@ -33,7 +33,6 @@ from defender_easm_common import (
     EASMAPIError,
 )
 
-
 ASSET_TYPE = "DnsRecord"
 SOURCETYPE = "defender:easm:dns_record"
 
@@ -58,7 +57,7 @@ class DefenderEASMDnsRecords(EASMModularInput):
 
         if last_checkpoint:
             params["$filter"] = (
-                f"properties.lastSeenDateTime gt {last_checkpoint}"
+                f"lastSeenDateTime gt '{last_checkpoint}'"
             )
 
         next_url = "/assets"
@@ -69,7 +68,14 @@ class DefenderEASMDnsRecords(EASMModularInput):
             response = self.api.get(next_url, params=params)
 
             records = response.get("value", [])
-            next_url = response.get("nextLink")
+            next_link = response.get("nextLink")
+
+            # nextLink is absolute — normalize to relative if needed
+            if next_link and next_link.startswith("https://"):
+                next_url = next_link.replace(self.api.base_url, "")
+            else:
+                next_url = next_link
+
             params = None  # nextLink already includes parameters
 
             for record in records:
@@ -79,10 +85,12 @@ class DefenderEASMDnsRecords(EASMModularInput):
                 )
                 event_count += 1
 
-                observed = (
-                    record.get("properties", {})
-                    .get("lastSeenDateTime")
-                )
+                observed = record.get("lastSeenDateTime")
+                if not observed:
+                    observed = (
+                        record.get("properties", {})
+                        .get("lastSeenDateTime")
+                    )
 
                 if observed and (
                     not newest_timestamp or observed > newest_timestamp
