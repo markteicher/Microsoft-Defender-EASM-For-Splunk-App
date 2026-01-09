@@ -4,9 +4,10 @@
 
 <dashboard version="1.1">
   <label>Saved Filters</label>
+
   <description>
     Displays saved filters configured in Microsoft Defender EASM.
-    Enables visibility into reusable query logic across asset discovery,
+    Provides visibility into reusable query logic across discovery,
     reports, and investigations.
   </description>
 
@@ -16,34 +17,46 @@
       <input type="time" token="time_range">
         <label>Time Range</label>
         <default>
-          <earliest>-90d</earliest>
+          <earliest>-90d@d</earliest>
           <latest>now</latest>
         </default>
       </input>
     </panel>
   </row>
 
-  <!-- Saved Filters Table -->
+  <!-- ========================= -->
+  <!-- BASE SEARCH -->
+  <!-- ========================= -->
+  <search id="saved_filters_base">
+    <query>
+      `easm_index`
+      sourcetype=defender:easm:saved_filter
+    </query>
+    <earliest>$time_range.earliest$</earliest>
+    <latest>$time_range.latest$</latest>
+  </search>
+
+  <!-- ========================= -->
+  <!-- SAVED FILTERS TABLE -->
+  <!-- ========================= -->
   <row>
     <panel>
       <title>Saved Filters</title>
+
       <table>
-        <search>
+        <search base="saved_filters_base">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:saved_filter
             | stats
-                latest(displayName) as display_name
-                latest(description) as description
-                latest(filterType) as filter_type
-                latest(createdBy) as created_by
-                latest(createdDateTime) as created_date
-                latest(lastModifiedDateTime) as last_modified_date
-              by filterId
-            | rename filterId as filter_id
+                latest(displayName)            AS display_name
+                latest(description)            AS description
+                latest(filterType)             AS filter_type
+                latest(createdBy)              AS created_by
+                latest(createdDateTime)        AS created_date
+                latest(lastModifiedDateTime)   AS last_modified_date
+              BY filterId
+            | rename filterId AS filter_id
             | sort display_name
           </query>
-          <earliest>$time_range.earliest$</earliest>
-          <latest>$time_range.latest$</latest>
         </search>
 
         <option name="count">15</option>
@@ -53,18 +66,19 @@
     </panel>
   </row>
 
-  <!-- Filter Usage Summary -->
+  <!-- ========================= -->
+  <!-- FILTER TYPE SUMMARY -->
+  <!-- ========================= -->
   <row>
     <panel>
-      <title>Saved Filter Summary</title>
+      <title>Saved Filter Summary by Type</title>
+
       <chart>
-        <search>
+        <search base="saved_filters_base">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:saved_filter
-            | stats count by filterType
+            | stats count BY filterType
+            | sort -count
           </query>
-          <earliest>$time_range.earliest$</earliest>
-          <latest>$time_range.latest$</latest>
         </search>
 
         <option name="charting.chart">bar</option>
