@@ -1,16 +1,25 @@
+<!-- defender_easm_attack_surface_summary.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- Attack Surface Summary -->
+
 <dashboard version="1.1">
   <label>Attack Surface Summary</label>
+  <description>
+    Summary of exposure insights and attack surface risk derived from Microsoft Defender External Attack Surface Management.
+  </description>
 
-  <!-- ========================= -->
-  <!-- Overall Exposure Summary -->
-  <!-- ========================= -->
+  <!-- ===================================================== -->
+  <!-- OVERALL EXPOSURE SUMMARY -->
+  <!-- ===================================================== -->
+
   <row>
     <panel>
-      <title>Total Exposed Assets</title>
+      <title>Total Exposure Insights</title>
       <single>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:assets
+            `easm_index`
+            sourcetype=defender:easm:exposure_insight
             | stats count
           </query>
         </search>
@@ -18,11 +27,13 @@
     </panel>
 
     <panel>
-      <title>High Risk Findings</title>
+      <title>High Severity</title>
       <single>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:insights priority=high
+            `easm_index`
+            sourcetype=defender:easm:exposure_insight
+            severity=High
             | stats count
           </query>
         </search>
@@ -30,11 +41,13 @@
     </panel>
 
     <panel>
-      <title>Medium Risk Findings</title>
+      <title>Medium Severity</title>
       <single>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:insights priority=medium
+            `easm_index`
+            sourcetype=defender:easm:exposure_insight
+            severity=Medium
             | stats count
           </query>
         </search>
@@ -42,11 +55,13 @@
     </panel>
 
     <panel>
-      <title>Low Risk Findings</title>
+      <title>Low Severity</title>
       <single>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:insights priority=low
+            `easm_index`
+            sourcetype=defender:easm:exposure_insight
+            severity=Low
             | stats count
           </query>
         </search>
@@ -54,57 +69,67 @@
     </panel>
   </row>
 
-  <!-- ========================= -->
-  <!-- Exposure by Asset Type -->
-  <!-- ========================= -->
+  <!-- ===================================================== -->
+  <!-- EXPOSURE BY ASSET TYPE -->
+  <!-- ===================================================== -->
+
   <row>
     <panel>
       <title>Exposure by Asset Type</title>
       <chart>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:assets
-            | stats count by assetType
+            `easm_index`
+            sourcetype=defender:easm:exposure_insight
+            | stats count by asset_type
           </query>
         </search>
         <option name="charting.chart">pie</option>
+        <option name="charting.legend.placement">right</option>
       </chart>
     </panel>
   </row>
 
-  <!-- ========================= -->
-  <!-- Exposure Trend -->
-  <!-- ========================= -->
+  <!-- ===================================================== -->
+  <!-- EXPOSURE TREND -->
+  <!-- ===================================================== -->
+
   <row>
     <panel>
-      <title>Attack Surface Trend</title>
+      <title>Exposure Trend Over Time</title>
       <chart>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:insights
-            | timechart span=1d count by priority
+            `easm_index`
+            sourcetype=defender:easm:exposure_insight
+            | timechart span=1d count by severity
           </query>
         </search>
         <option name="charting.chart">line</option>
+        <option name="charting.legend.placement">right</option>
       </chart>
     </panel>
   </row>
 
-  <!-- ========================= -->
-  <!-- Top Risk Drivers -->
-  <!-- ========================= -->
+  <!-- ===================================================== -->
+  <!-- TOP RISK DRIVERS -->
+  <!-- ===================================================== -->
+
   <row>
     <panel>
-      <title>Top Risk Drivers</title>
+      <title>Top Exposure Categories</title>
       <table>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:insights
+            `easm_index`
+            sourcetype=defender:easm:exposure_insight
             | stats count by category
             | sort - count
             | head 10
           </query>
         </search>
+        <option name="count">10</option>
+        <option name="wrap">true</option>
       </table>
     </panel>
   </row>
