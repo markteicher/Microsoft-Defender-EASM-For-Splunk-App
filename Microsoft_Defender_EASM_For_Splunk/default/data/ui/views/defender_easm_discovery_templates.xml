@@ -1,120 +1,153 @@
-<!-- defender_easm_discovery_templates.xml -->
-<!-- Microsoft Defender EASM for Splunk App -->
-<!-- Dashboard: Discovery Templates -->
+<!--
+  File: defender_easm_discovery_templates.xml
+  Purpose: Manage → Discovery Templates
+-->
 
 <dashboard version="1.1">
   <label>Discovery Templates</label>
+
   <description>
-    Inventory and visibility of Microsoft Defender EASM discovery templates
-    collected from the data-plane discovery-templates API.
+    Inventory and lifecycle visibility of Defender EASM discovery templates
+    collected from the data-plane Discovery Templates API.
   </description>
 
-  <!-- Summary -->
+  <!-- ========================= -->
+  <!-- BASE SEARCH -->
+  <!-- ========================= -->
+  <search id="base_templates">
+    <query>
+      `easm_index`
+      sourcetype=defender:easm:discovery_template
+      | eval
+          template_name=name,
+          provisioning_state=properties.provisioningState,
+          created_time=systemData.createdAt,
+          modified_time=systemData.lastModifiedAt,
+          created_by=systemData.createdBy,
+          modified_by=systemData.lastModifiedBy
+    </query>
+    <earliest>-90d@d</earliest>
+    <latest>now</latest>
+  </search>
+
+  <!-- ========================= -->
+  <!-- KPI OVERVIEW -->
+  <!-- ========================= -->
   <row>
     <panel>
-      <title>Discovery Template Summary</title>
-      <table>
-        <search>
-          <query>
-            index=security_defender_easm sourcetype=defender:easm:discovery_template
-            | stats
-                count as total_templates
-                by provisioning_state
-          </query>
-          <earliest>-30d</earliest>
-          <latest>now</latest>
+      <single>
+        <title>Total Discovery Templates</title>
+        <search base="base_templates">
+          <query>| stats count</query>
         </search>
-        <option name="count">10</option>
-      </table>
+      </single>
+    </panel>
+
+    <panel>
+      <single>
+        <title>Provisioned</title>
+        <search base="base_templates">
+          <query>
+            | search provisioning_state="Succeeded"
+            | stats count
+          </query>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <single>
+        <title>Updating / Creating</title>
+        <search base="base_templates">
+          <query>
+            | search provisioning_state IN ("Creating","Updating")
+            | stats count
+          </query>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <single>
+        <title>Failed</title>
+        <search base="base_templates">
+          <query>
+            | search provisioning_state="Failed"
+            | stats count
+          </query>
+        </search>
+      </single>
     </panel>
   </row>
 
-  <!-- Template Inventory -->
+  <!-- ========================= -->
+  <!-- PROVISIONING STATE -->
+  <!-- ========================= -->
   <row>
     <panel>
-      <title>Discovery Template Inventory</title>
-      <table>
-        <search>
-          <query>
-            index=security_defender_easm sourcetype=defender:easm:discovery_template
-            | table
-                template_name
-                template_type
-                provisioning_state
-                created_time
-                last_modified_time
-                created_by
-                modified_by
-            | sort template_name
-          </query>
-          <earliest>-90d</earliest>
-          <latest>now</latest>
-        </search>
-        <option name="count">20</option>
-      </table>
-    </panel>
-  </row>
-
-  <!-- Template Types -->
-  <row>
-    <panel>
-      <title>Templates by Type</title>
+      <title>Templates by Provisioning State</title>
       <chart>
-        <search>
+        <search base="base_templates">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:discovery_template
-            | stats count by template_type
-            | sort - count
+            | stats count by provisioning_state
           </query>
-          <earliest>-90d</earliest>
-          <latest>now</latest>
         </search>
-        <option name="charting.chart">pie</option>
+        <option name="charting.chart">column</option>
         <option name="charting.legend.placement">right</option>
       </chart>
     </panel>
   </row>
 
-  <!-- Provisioning State -->
+  <!-- ========================= -->
+  <!-- TEMPLATE INVENTORY -->
+  <!-- ========================= -->
   <row>
     <panel>
-      <title>Provisioning State Distribution</title>
-      <chart>
-        <search>
+      <title>Discovery Template Inventory</title>
+      <table>
+        <search base="base_templates">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:discovery_template
-            | stats count by provisioning_state
-            | sort - count
+            | table
+                template_name
+                provisioning_state
+                created_time
+                modified_time
+                created_by
+                modified_by
+            | sort template_name
           </query>
-          <earliest>-90d</earliest>
-          <latest>now</latest>
         </search>
-        <option name="charting.chart">bar</option>
-        <option name="charting.axisTitleX.text">Provisioning State</option>
-        <option name="charting.axisTitleY.text">Template Count</option>
-      </chart>
+
+        <option name="count">20</option>
+        <option name="wrap">true</option>
+
+        <drilldown>
+          <set token="template_name">$row.template_name$</set>
+        </drilldown>
+      </table>
     </panel>
   </row>
 
-  <!-- Change Activity -->
+  <!-- ========================= -->
+  <!-- CHANGE ACTIVITY -->
+  <!-- ========================= -->
   <row>
     <panel>
-      <title>Discovery Template Change Activity</title>
+      <title>Recent Template Changes</title>
       <table>
-        <search>
+        <search base="base_templates">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:discovery_template
-            | sort - last_modified_time
+            | sort - modified_time
             | table
-                last_modified_time
+                modified_time
                 template_name
                 modified_by
                 provisioning_state
           </query>
-          <earliest>-30d</earliest>
-          <latest>now</latest>
         </search>
+
         <option name="count">15</option>
+        <option name="wrap">true</option>
       </table>
     </panel>
   </row>
