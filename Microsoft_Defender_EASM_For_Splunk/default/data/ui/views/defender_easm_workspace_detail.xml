@@ -19,18 +19,20 @@
       <table>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:workspace
+            `easm_index`
+            sourcetype=defender:easm:workspace
             | search name="$workspace_name$"
-            | table name location properties.provisioningState id
+            | eval provisioning_state=properties.provisioningState
+            | table name location provisioning_state id
           </query>
         </search>
-        <option name="count">10</option>
+        <option name="count">5</option>
       </table>
     </panel>
   </row>
 
   <!-- ============================= -->
-  <!-- Provisioning State -->
+  <!-- Provisioning & Location -->
   <!-- ============================= -->
   <row>
     <panel>
@@ -38,9 +40,11 @@
       <single>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:workspace
+            `easm_index`
+            sourcetype=defender:easm:workspace
             | search name="$workspace_name$"
-            | stats values(properties.provisioningState) AS "Provisioning State"
+            | eval provisioning_state=properties.provisioningState
+            | stats values(provisioning_state) AS state
           </query>
         </search>
         <option name="underLabel">Current Status</option>
@@ -52,12 +56,13 @@
       <single>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:workspace
+            `easm_index`
+            sourcetype=defender:easm:workspace
             | search name="$workspace_name$"
-            | stats values(location) AS "Azure Region"
+            | stats values(location) AS region
           </query>
         </search>
-        <option name="underLabel">Deployment Region</option>
+        <option name="underLabel">Azure Region</option>
       </single>
     </panel>
   </row>
@@ -71,19 +76,21 @@
       <table>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:workspace
+            `easm_index`
+            sourcetype=defender:easm:workspace
             | search name="$workspace_name$"
-            | eval subscriptionId=mvindex(split(id,"/"),2)
-            | eval resourceGroup=mvindex(split(id,"/"),4)
-            | table name subscriptionId resourceGroup id
+            | eval subscription_id=mvindex(split(id,"/"),2)
+            | eval resource_group=mvindex(split(id,"/"),4)
+            | table name subscription_id resource_group id
           </query>
         </search>
+        <option name="wrap">true</option>
       </table>
     </panel>
   </row>
 
   <!-- ============================= -->
-  <!-- System Data (ARM metadata) -->
+  <!-- System Metadata (ARM) -->
   <!-- ============================= -->
   <row>
     <panel>
@@ -91,11 +98,17 @@
       <table>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:workspace
+            `easm_index`
+            sourcetype=defender:easm:workspace
             | search name="$workspace_name$"
-            | table systemData.createdBy systemData.createdAt systemData.lastModifiedBy systemData.lastModifiedAt
+            | eval created_by=systemData.createdBy
+            | eval created_at=systemData.createdAt
+            | eval modified_by=systemData.lastModifiedBy
+            | eval modified_at=systemData.lastModifiedAt
+            | table created_by created_at modified_by modified_at
           </query>
         </search>
+        <option name="wrap">true</option>
       </table>
     </panel>
   </row>
