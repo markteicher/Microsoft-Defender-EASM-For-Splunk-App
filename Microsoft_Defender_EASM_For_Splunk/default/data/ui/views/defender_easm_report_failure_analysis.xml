@@ -4,34 +4,52 @@
 
 <dashboard version="1.1">
   <label>Report Failure Analysis</label>
+
   <description>
     Analysis of failed Microsoft Defender EASM report executions.
-    Provides visibility into failure rates, root causes, and recurring issues.
+    Identifies failure frequency, root causes, and recurring problem patterns.
   </description>
 
-  <!-- Time Range Picker -->
-  <row>
-    <panel>
-      <input type="time" token="time_range">
-        <label>Time Range</label>
-        <default>
-          <earliest>-30d</earliest>
-          <latest>now</latest>
-        </default>
-      </input>
-    </panel>
-  </row>
+  <!-- ========================= -->
+  <!-- TIME RANGE -->
+  <!-- ========================= -->
 
-  <!-- Failed Reports Table -->
+  <fieldset submitButton="false">
+    <input type="time" token="time">
+      <label>Time Range</label>
+      <default>
+        <earliest>-30d@d</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+
+  <!-- ========================= -->
+  <!-- BASE SEARCH -->
+  <!-- ========================= -->
+
+  <search id="base_failures">
+    <query>
+      `easm_index`
+      sourcetype=defender:easm:report
+      | eval status=lower(status)
+      | where status IN ("failed","error")
+      | eval failure_reason=coalesce(error_message, error_code, "Unknown")
+    </query>
+    <earliest>$time.earliest$</earliest>
+    <latest>$time.latest$</latest>
+  </search>
+
+  <!-- ========================= -->
+  <!-- FAILED REPORT TABLE -->
+  <!-- ========================= -->
+
   <row>
     <panel>
       <title>Failed Report Executions</title>
       <table>
-        <search>
+        <search base="base_failures">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:report
-            | search status=failed OR status=error
-            | eval failure_reason=coalesce(error_message, error_code, "Unknown")
             | table
                 report_id
                 report_name
@@ -40,32 +58,37 @@
                 failure_reason
                 created_time
                 completed_time
-            | sort -created_time
+            | sort - created_time
           </query>
-          <earliest>$time_range.earliest$</earliest>
-          <latest>$time_range.latest$</latest>
         </search>
+
+        <drilldown>
+          <link>
+            <![CDATA[
+              /app/microsoft_defender_easm/defender_easm_report_details?report_id=$row.report_id$
+            ]]>
+          </link>
+        </drilldown>
+
         <option name="count">10</option>
         <option name="wrap">true</option>
       </table>
     </panel>
   </row>
 
-  <!-- Failure Reasons Breakdown -->
+  <!-- ========================= -->
+  <!-- FAILURE REASONS -->
+  <!-- ========================= -->
+
   <row>
     <panel>
       <title>Failure Reasons Breakdown</title>
       <chart>
-        <search>
+        <search base="base_failures">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:report
-            | search status=failed OR status=error
-            | eval failure_reason=coalesce(error_message, error_code, "Unknown")
-            | stats count by failure_reason
-            | sort -count
+            | stats count AS occurrences BY failure_reason
+            | sort - occurrences
           </query>
-          <earliest>$time_range.earliest$</earliest>
-          <latest>$time_range.latest$</latest>
         </search>
         <option name="charting.chart">bar</option>
         <option name="charting.axisTitleX.text">Failure Reason</option>
@@ -75,19 +98,18 @@
     </panel>
   </row>
 
-  <!-- Failure Trend Over Time -->
+  <!-- ========================= -->
+  <!-- FAILURE TREND -->
+  <!-- ========================= -->
+
   <row>
     <panel>
       <title>Report Failures Over Time</title>
       <chart>
-        <search>
+        <search base="base_failures">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:report
-            | search status=failed OR status=error
-            | timechart span=1d count as failures
+            | timechart span=1d count AS failures
           </query>
-          <earliest>$time_range.earliest$</earliest>
-          <latest>$time_range.latest$</latest>
         </search>
         <option name="charting.chart">line</option>
         <option name="charting.axisTitleX.text">Date</option>
