@@ -4,34 +4,53 @@
 
 <dashboard version="1.1">
   <label>Report Execution Duration</label>
+
   <description>
     Execution timing and duration analysis for Microsoft Defender EASM reports.
-    Highlights long-running and failed reports for operational insight.
+    Highlights long-running, slow, and failed report executions.
   </description>
 
-  <!-- Time Range Picker -->
-  <row>
-    <panel>
-      <input type="time" token="time_range">
-        <label>Time Range</label>
-        <default>
-          <earliest>-30d</earliest>
-          <latest>now</latest>
-        </default>
-      </input>
-    </panel>
-  </row>
+  <!-- ========================= -->
+  <!-- TIME RANGE -->
+  <!-- ========================= -->
 
-  <!-- Execution Duration Table -->
+  <fieldset submitButton="false">
+    <input type="time" token="time">
+      <label>Time Range</label>
+      <default>
+        <earliest>-30d@d</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+
+  <!-- ========================= -->
+  <!-- BASE SEARCH -->
+  <!-- ========================= -->
+
+  <search id="base_reports">
+    <query>
+      `easm_index`
+      sourcetype=defender:easm:report
+      | eval created_epoch=strptime(created_time,"%Y-%m-%dT%H:%M:%S")
+      | eval completed_epoch=strptime(completed_time,"%Y-%m-%dT%H:%M:%S")
+      | eval duration_seconds=completed_epoch-created_epoch
+      | eval duration_minutes=round(duration_seconds/60,2)
+    </query>
+    <earliest>$time.earliest$</earliest>
+    <latest>$time.latest$</latest>
+  </search>
+
+  <!-- ========================= -->
+  <!-- EXECUTION TABLE -->
+  <!-- ========================= -->
+
   <row>
     <panel>
       <title>Report Execution Durations</title>
       <table>
-        <search>
+        <search base="base_reports">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:report
-            | eval duration_seconds=completed_time-created_time
-            | eval duration_minutes=round(duration_seconds/60,2)
             | table
                 report_id
                 report_name
@@ -40,10 +59,8 @@
                 created_time
                 completed_time
                 duration_minutes
-            | sort -duration_minutes
+            | sort - duration_minutes
           </query>
-          <earliest>$time_range.earliest$</earliest>
-          <latest>$time_range.latest$</latest>
         </search>
         <option name="count">10</option>
         <option name="wrap">true</option>
@@ -51,43 +68,41 @@
     </panel>
   </row>
 
-  <!-- Long Running Reports -->
+  <!-- ========================= -->
+  <!-- LONG-RUNNING REPORTS -->
+  <!-- ========================= -->
+
   <row>
     <panel>
-      <title>Long Running Reports (Top 10)</title>
+      <title>Longest Running Reports (Top 10)</title>
       <chart>
-        <search>
+        <search base="base_reports">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:report
-            | eval duration_seconds=completed_time-created_time
-            | eval duration_minutes=round(duration_seconds/60,2)
-            | stats max(duration_minutes) as max_duration by report_name
-            | sort -max_duration
+            | stats max(duration_minutes) AS max_duration BY report_name
+            | sort - max_duration
             | head 10
           </query>
-          <earliest>$time_range.earliest$</earliest>
-          <latest>$time_range.latest$</latest>
         </search>
         <option name="charting.chart">bar</option>
-        <option name="charting.axisTitleX.text">Report</option>
+        <option name="charting.axisTitleX.text">Report Name</option>
         <option name="charting.axisTitleY.text">Duration (Minutes)</option>
         <option name="charting.legend.placement">none</option>
       </chart>
     </panel>
   </row>
 
-  <!-- Failed vs Successful Execution -->
+  <!-- ========================= -->
+  <!-- STATUS BREAKDOWN -->
+  <!-- ========================= -->
+
   <row>
     <panel>
       <title>Execution Status Breakdown</title>
       <chart>
-        <search>
+        <search base="base_reports">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:report
-            | stats count by status
+            | stats count BY status
           </query>
-          <earliest>$time_range.earliest$</earliest>
-          <latest>$time_range.latest$</latest>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.legend.placement">right</option>
