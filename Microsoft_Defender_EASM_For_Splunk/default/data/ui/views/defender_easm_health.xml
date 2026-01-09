@@ -3,10 +3,10 @@
 <!-- Platform & Ingestion Health Monitoring -->
 
 <dashboard version="1.1">
-  <label>Health</label>
+  <label>❤️ Health</label>
   <description>
-    Platform health, API availability, ingestion freshness, and operational status
-    for Microsoft Defender EASM.
+    Real-time platform health, API availability, and ingestion status
+    for Microsoft Defender External Attack Surface Management.
   </description>
 
   <!-- BASE SEARCH -->
@@ -22,29 +22,43 @@
   <!-- HEALTH KPIs -->
   <row>
     <panel>
-      <title>Overall Health Status</title>
+      <title>❤️ Overall Health</title>
       <single>
         <search>
           <query>
-            | stats latest(status) AS health_status
+            | stats latest(status) AS status
+            | eval status_icon=case(
+                status="Healthy","🟢 Healthy",
+                status="Degraded","🟠 Degraded",
+                status="Failed","🔴 Failed"
+              )
+            | fields status_icon
           </query>
         </search>
       </single>
     </panel>
 
     <panel>
-      <title>Last Successful Collection</title>
+      <title>🕒 Last Successful Collection</title>
       <single>
         <search>
           <query>
             | stats latest(lastSuccessTime) AS last_success
+            | eval freshness=now()-strptime(last_success,"%Y-%m-%dT%H:%M:%S")
+            | eval freshness_readable=case(
+                freshness<300,"Just now",
+                freshness<3600,round(freshness/60)." minutes ago",
+                freshness<86400,round(freshness/3600)." hours ago",
+                true(),round(freshness/86400)." days ago"
+              )
+            | fields freshness_readable
           </query>
         </search>
       </single>
     </panel>
 
     <panel>
-      <title>Failed Collections (24h)</title>
+      <title>❌ Failed Collections (24h)</title>
       <single>
         <search>
           <query>
@@ -59,11 +73,17 @@
   <!-- COMPONENT STATUS -->
   <row>
     <panel>
-      <title>Component Health Status</title>
+      <title>🧩 Component Health Status</title>
       <table>
         <search>
           <query>
+            | eval status_icon=case(
+                status="Healthy","🟢",
+                status="Degraded","🟠",
+                status="Failed","🔴"
+              )
             | table
+                status_icon
                 componentName
                 status
                 lastCheckedTime
@@ -80,20 +100,21 @@
   <!-- HEALTH TREND -->
   <row>
     <panel>
-      <title>Health Status Over Time</title>
+      <title>📈 Health Status Over Time</title>
       <chart>
         <search>
           <query>
-            | eval status_numeric=case(
+            | eval severity=case(
                 status="Healthy",1,
                 status="Degraded",2,
                 status="Failed",3
               )
-            | timechart span=1h max(status_numeric)
+            | timechart span=1h max(severity) AS health_level
           </query>
         </search>
         <option name="charting.chart">line</option>
         <option name="charting.legend.placement">none</option>
+        <option name="charting.axisY.title">Health Severity</option>
       </chart>
     </panel>
   </row>
@@ -101,7 +122,7 @@
   <!-- RECENT ERRORS -->
   <row>
     <panel>
-      <title>Recent Health Errors</title>
+      <title>🚨 Recent Health Errors</title>
       <table>
         <search>
           <query>
