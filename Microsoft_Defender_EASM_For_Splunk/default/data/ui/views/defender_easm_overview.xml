@@ -1,15 +1,26 @@
+<!-- defender_easm_overview.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- Overview Dashboard -->
+
 <dashboard version="1.1">
   <label>Overview</label>
+  <description>
+    High-level inventory and attack surface insights derived from Microsoft Defender External Attack Surface Management.
+  </description>
 
-  <!-- ========================= -->
-  <!-- Asset Inventory Summary -->
-  <!-- ========================= -->
+  <!-- ===================================================== -->
+  <!-- ASSET INVENTORY SUMMARY -->
+  <!-- ===================================================== -->
+
   <row>
     <panel>
       <title>Domains</title>
       <single>
         <search>
-          <query>index=security_defender_easm sourcetype=defender:easm:domains | stats count</query>
+          <query>
+            `easm_index` `easm_domains`
+            | stats count
+          </query>
         </search>
       </single>
     </panel>
@@ -18,7 +29,10 @@
       <title>Hosts</title>
       <single>
         <search>
-          <query>index=security_defender_easm sourcetype=defender:easm:hosts | stats count</query>
+          <query>
+            `easm_index` `easm_hosts`
+            | stats count
+          </query>
         </search>
       </single>
     </panel>
@@ -27,7 +41,10 @@
       <title>Pages</title>
       <single>
         <search>
-          <query>index=security_defender_easm sourcetype=defender:easm:pages | stats count</query>
+          <query>
+            `easm_index` `easm_pages`
+            | stats count
+          </query>
         </search>
       </single>
     </panel>
@@ -36,7 +53,10 @@
       <title>SSL Certificates</title>
       <single>
         <search>
-          <query>index=security_defender_easm sourcetype=defender:easm:certificates | stats count</query>
+          <query>
+            `easm_index` `easm_ssl_certificates`
+            | stats count
+          </query>
         </search>
       </single>
     </panel>
@@ -47,7 +67,10 @@
       <title>ASNs</title>
       <single>
         <search>
-          <query>index=security_defender_easm sourcetype=defender:easm:asns | stats count</query>
+          <query>
+            `easm_index` `easm_asns`
+            | stats count
+          </query>
         </search>
       </single>
     </panel>
@@ -56,7 +79,10 @@
       <title>IP Blocks</title>
       <single>
         <search>
-          <query>index=security_defender_easm sourcetype=defender:easm:ip_blocks | stats count</query>
+          <query>
+            `easm_index` `easm_ip_blocks`
+            | stats count
+          </query>
         </search>
       </single>
     </panel>
@@ -65,48 +91,70 @@
       <title>IP Addresses</title>
       <single>
         <search>
-          <query>index=security_defender_easm sourcetype=defender:easm:ip_addresses | stats count</query>
+          <query>
+            `easm_index` `easm_ip_addresses`
+            | stats count
+          </query>
         </search>
       </single>
     </panel>
 
     <panel>
-      <title>Contacts</title>
+      <title>WHOIS Contacts</title>
       <single>
         <search>
-          <query>index=security_defender_easm sourcetype=defender:easm:contacts | stats count</query>
+          <query>
+            `easm_index` `easm_whois_contacts`
+            | stats count
+          </query>
         </search>
       </single>
     </panel>
   </row>
 
-  <!-- ========================= -->
-  <!-- Attack Surface Insights -->
-  <!-- ========================= -->
+  <!-- ===================================================== -->
+  <!-- ATTACK SURFACE INSIGHTS -->
+  <!-- ===================================================== -->
+
   <row>
     <panel>
-      <title>High Priority</title>
+      <title>High Priority Findings</title>
       <single>
         <search>
-          <query>index=security_defender_easm sourcetype=defender:easm:insights priority=high | stats count</query>
+          <query>
+            `easm_index`
+            sourcetype=defender:easm:exposure_insight
+            severity=High
+            | stats count
+          </query>
         </search>
       </single>
     </panel>
 
     <panel>
-      <title>Medium Priority</title>
+      <title>Medium Priority Findings</title>
       <single>
         <search>
-          <query>index=security_defender_easm sourcetype=defender:easm:insights priority=medium | stats count</query>
+          <query>
+            `easm_index`
+            sourcetype=defender:easm:exposure_insight
+            severity=Medium
+            | stats count
+          </query>
         </search>
       </single>
     </panel>
 
     <panel>
-      <title>Low Priority</title>
+      <title>Low Priority Findings</title>
       <single>
         <search>
-          <query>index=security_defender_easm sourcetype=defender:easm:insights priority=low | stats count</query>
+          <query>
+            `easm_index`
+            sourcetype=defender:easm:exposure_insight
+            severity=Low
+            | stats count
+          </query>
         </search>
       </single>
     </panel>
