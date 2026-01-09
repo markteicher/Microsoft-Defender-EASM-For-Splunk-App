@@ -1,18 +1,37 @@
+<!-- defender_easm_owasp_top10.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- Dashboard: OWASP Top 10 -->
+
 <dashboard version="1.1">
   <label>OWASP Top 10</label>
+  <description>
+    Visibility into OWASP Top 10 exposure derived from Microsoft Defender EASM findings.
+  </description>
 
   <!-- ========================= -->
-  <!-- OWASP Summary Metrics -->
+  <!-- BASE SEARCH -->
   <!-- ========================= -->
+
+  <search id="base_owasp_findings">
+    <query>
+      `easm_index`
+      sourcetype=defender:easm:findings
+      owaspCategory=*
+    </query>
+    <earliest>-30d@d</earliest>
+    <latest>now</latest>
+  </search>
+
+  <!-- ========================= -->
+  <!-- OWASP SUMMARY METRICS -->
+  <!-- ========================= -->
+
   <row>
     <panel>
       <title>Total OWASP Findings</title>
       <single>
-        <search>
-          <query>
-            index=security_defender_easm sourcetype=defender:easm:findings owaspCategory=*
-            | stats count
-          </query>
+        <search base="base_owasp_findings">
+          <query>| stats count</query>
         </search>
       </single>
     </panel>
@@ -20,9 +39,9 @@
     <panel>
       <title>Critical OWASP Findings</title>
       <single>
-        <search>
+        <search base="base_owasp_findings">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:findings owaspCategory=* severity=critical
+            | search severity=Critical
             | stats count
           </query>
         </search>
@@ -32,9 +51,9 @@
     <panel>
       <title>High OWASP Findings</title>
       <single>
-        <search>
+        <search base="base_owasp_findings">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:findings owaspCategory=* severity=high
+            | search severity=High
             | stats count
           </query>
         </search>
@@ -44,10 +63,9 @@
     <panel>
       <title>Assets Impacted</title>
       <single>
-        <search>
+        <search base="base_owasp_findings">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:findings owaspCategory=*
-            | stats dc(assetId)
+            | stats dc(assetId) AS impacted_assets
           </query>
         </search>
       </single>
@@ -55,75 +73,81 @@
   </row>
 
   <!-- ========================= -->
-  <!-- OWASP Findings by Category -->
+  <!-- OWASP FINDINGS BY CATEGORY -->
   <!-- ========================= -->
+
   <row>
     <panel>
       <title>OWASP Top 10 Findings by Category</title>
       <chart>
-        <search>
+        <search base="base_owasp_findings">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:findings owaspCategory=*
             | stats count by owaspCategory
             | sort owaspCategory
           </query>
         </search>
         <option name="charting.chart">bar</option>
+        <option name="charting.axisTitleX.text">OWASP Category</option>
+        <option name="charting.axisTitleY.text">Finding Count</option>
       </chart>
     </panel>
   </row>
 
   <!-- ========================= -->
-  <!-- OWASP Severity Distribution -->
+  <!-- OWASP SEVERITY DISTRIBUTION -->
   <!-- ========================= -->
+
   <row>
     <panel>
       <title>OWASP Findings by Severity</title>
       <chart>
-        <search>
+        <search base="base_owasp_findings">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:findings owaspCategory=*
             | stats count by severity
           </query>
         </search>
         <option name="charting.chart">pie</option>
+        <option name="charting.legend.placement">right</option>
       </chart>
     </panel>
   </row>
 
   <!-- ========================= -->
-  <!-- OWASP Findings Trend -->
+  <!-- OWASP FINDINGS TREND -->
   <!-- ========================= -->
+
   <row>
     <panel>
       <title>OWASP Risk Trend</title>
       <chart>
-        <search>
+        <search base="base_owasp_findings">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:findings owaspCategory=*
             | timechart span=1d count by severity
           </query>
         </search>
         <option name="charting.chart">line</option>
+        <option name="charting.legend.placement">right</option>
       </chart>
     </panel>
   </row>
 
   <!-- ========================= -->
-  <!-- Top Affected Assets -->
+  <!-- TOP AFFECTED ASSETS -->
   <!-- ========================= -->
+
   <row>
     <panel>
       <title>Top Assets by OWASP Exposure</title>
       <table>
-        <search>
+        <search base="base_owasp_findings">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:findings owaspCategory=*
             | stats count by assetName owaspCategory
             | sort - count
             | head 15
           </query>
         </search>
+        <option name="count">15</option>
+        <option name="wrap">true</option>
       </table>
     </panel>
   </row>
