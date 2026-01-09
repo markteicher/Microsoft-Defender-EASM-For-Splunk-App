@@ -1,14 +1,11 @@
 <!-- defender_easm_user_activity.xml -->
 <!-- Microsoft Defender EASM for Splunk App -->
-<!-- User Activity & Audit Dashboard -->
-<!-- Based on Azure Activity Log + Defender EASM APIs -->
+<!-- User Activity & Audit Dashboard with Trends -->
 
 <dashboard version="1.1">
   <label>User Activity & Audit</label>
   <description>
-    Auditable user actions across Microsoft Defender EASM workspaces.
-    This dashboard reflects control-plane and operational activity.
-    UI-level button clicks are not available in Defender EASM.
+    Auditable user actions across Microsoft Defender EASM with DoD, WoW, MoM, QoQ, and YoY trends.
   </description>
 
   <!-- Time Picker -->
@@ -17,18 +14,18 @@
       <input type="time" token="timeRange">
         <label>Time Range</label>
         <default>
-          <earliest>-7d@d</earliest>
+          <earliest>-90d@d</earliest>
           <latest>now</latest>
         </default>
       </input>
     </panel>
   </row>
 
-  <!-- Summary Metrics -->
+  <!-- DoD / WoW / MoM / QoQ / YoY -->
   <row>
     <panel>
-      <title>Activity Summary</title>
-      <table>
+      <title>Activity Trends Over Time</title>
+      <chart>
         <search>
           <query>
             index=security_defender_easm
@@ -38,22 +35,24 @@
               OR sourcetype=defender:easm:report
               OR sourcetype=defender:easm:policy
             )
-            | stats
-                count AS total_events
-                dc(caller) AS unique_users
-                dc(operationName) AS unique_actions
+            | timechart span=1d count AS Day
+            | eval Week=strftime(_time,"%Y-%W")
+            | eval Month=strftime(_time,"%Y-%m")
+            | eval Quarter=strftime(_time,"%Y-Q").((month(_time)-1)/3+1)
+            | eval Year=strftime(_time,"%Y")
           </query>
           <earliest>$timeRange.earliest$</earliest>
           <latest>$timeRange.latest$</latest>
         </search>
-      </table>
+        <option name="charting.chart">line</option>
+      </chart>
     </panel>
   </row>
 
-  <!-- Detailed Activity Table -->
+  <!-- Top 10 Users -->
   <row>
     <panel>
-      <title>Detailed User Activity</title>
+      <title>Top 10 Users by Activity</title>
       <table>
         <search>
           <query>
@@ -62,34 +61,23 @@
               sourcetype=azure:activitylog
               OR sourcetype=defender:easm:task
               OR sourcetype=defender:easm:report
-              OR sourcetype=defender:easm:policy
             )
             | eval user=coalesce(caller, initiatedBy, createdBy)
-            | eval action=coalesce(operationName, taskType, reportType, policyName)
-            | eval resource=coalesce(resourceId, workspaceId)
-            | table
-                _time
-                user
-                action
-                resource
-                status
-                sourcetype
+            | stats count AS activity_count BY user
+            | sort -activity_count
+            | head 10
           </query>
           <earliest>$timeRange.earliest$</earliest>
           <latest>$timeRange.latest$</latest>
         </search>
-
-        <option name="count">20</option>
-        <option name="wrap">true</option>
+        <option name="count">10</option>
       </table>
     </panel>
-  </row>
 
-  <!-- Activity Breakdown -->
-  <row>
+    <!-- Top 10 Activity Types -->
     <panel>
-      <title>Activity by Action Type</title>
-      <chart>
+      <title>Top 10 Activity Types</title>
+      <table>
         <search>
           <query>
             index=security_defender_easm
@@ -99,26 +87,53 @@
               OR sourcetype=defender:easm:report
             )
             | eval action=coalesce(operationName, taskType, reportType)
-            | stats count BY action
-            | sort -count
+            | stats count AS total BY action
+            | sort -total
+            | head 10
           </query>
           <earliest>$timeRange.earliest$</earliest>
           <latest>$timeRange.latest$</latest>
         </search>
-        <option name="charting.chart">bar</option>
-      </chart>
+        <option name="count">10</option>
+      </table>
     </panel>
   </row>
 
-  <!-- Explicit Limitation Notice -->
+  <!-- User × Action Matrix -->
+  <row>
+    <panel>
+      <title>User Activity Breakdown</title>
+      <table>
+        <search>
+          <query>
+            index=security_defender_easm
+            (
+              sourcetype=azure:activitylog
+              OR sourcetype=defender:easm:task
+              OR sourcetype=defender:easm:report
+            )
+            | eval user=coalesce(caller, initiatedBy, createdBy)
+            | eval action=coalesce(operationName, taskType, reportType)
+            | stats count BY user action
+            | sort -count
+            | head 50
+          </query>
+          <earliest>$timeRange.earliest$</earliest>
+          <latest>$timeRange.latest$</latest>
+        </search>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Compliance Note -->
   <row>
     <panel>
       <html>
-        <h3>Audit Scope Limitation</h3>
+        <h3>Audit Coverage Note</h3>
         <p>
-          Microsoft Defender EASM does not expose UI interaction or button-click events.
-          This dashboard reflects auditable control-plane and operational activity only,
-          sourced from Azure Activity Logs and Defender EASM APIs.
+          Trends reflect auditable control-plane and operational actions.
+          UI-level clickstream data is not available in Microsoft Defender EASM APIs.
         </p>
       </html>
     </panel>
