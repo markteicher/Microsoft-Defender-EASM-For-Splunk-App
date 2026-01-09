@@ -83,26 +83,6 @@
   </row>
 
   <!-- ========================= -->
-  <!-- INVENTORY GROWTH -->
-  <!-- ========================= -->
-  <row>
-    <panel>
-      <title>Inventory Growth Over Time</title>
-      <chart>
-        <search>
-          <query>
-            `easm_index`
-            `easm_assets_sourcetypes`
-            | timechart span=1d count
-          </query>
-        </search>
-        <option name="charting.chart">line</option>
-        <option name="charting.legend.placement">none</option>
-      </chart>
-    </panel>
-  </row>
-
-  <!-- ========================= -->
   <!-- DNS RECORDS -->
   <!-- ========================= -->
   <row>
@@ -142,12 +122,24 @@
         <option name="count">15</option>
         <option name="wrap">true</option>
 
-        <!-- Drilldown: DNS Record → Asset Detail -->
+        <!-- Row click: DNS → Asset Detail -->
         <drilldown>
           <link>
             <target>defender_easm_asset_detail</target>
             <arg name="form.easm_id">$row.easm_id$</arg>
           </link>
+        </drilldown>
+
+        <!-- Right-click: DNS → Parent Domain -->
+        <drilldown type="row">
+          <condition>
+            <action>
+              <link>
+                <target>defender_easm_inventory</target>
+                <arg name="form.domain">$row.dns_name$</arg>
+              </link>
+            </action>
+          </condition>
         </drilldown>
 
       </table>
@@ -182,12 +174,36 @@
         <option name="wrap">true</option>
         <option name="rowNumbers">true</option>
 
-        <!-- Drilldown: Inventory → Asset Detail -->
+        <!-- Default click: Asset → Asset Detail -->
         <drilldown>
           <link>
             <target>defender_easm_asset_detail</target>
             <arg name="form.easm_id">$row.easm_id$</arg>
           </link>
+        </drilldown>
+
+        <!-- Right-click: Asset → Exposure Insights -->
+        <drilldown type="row">
+          <condition>
+            <action>
+              <link>
+                <target>defender_easm_attack_surface_summary</target>
+                <arg name="form.easm_id">$row.easm_id$</arg>
+              </link>
+            </action>
+          </condition>
+        </drilldown>
+
+        <!-- Right-click: Domain → Related DNS / IPs -->
+        <drilldown type="row">
+          <condition match="$row.domain$!=&quot;&quot;">
+            <action>
+              <link>
+                <target>defender_easm_inventory</target>
+                <arg name="form.domain">$row.domain$</arg>
+              </link>
+            </action>
+          </condition>
         </drilldown>
 
       </table>
