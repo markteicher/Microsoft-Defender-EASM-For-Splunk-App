@@ -12,17 +12,17 @@
   <!-- BASE SEARCH -->
   <search>
     <query>
-      index=security_defender_easm
+      `easm_index`
       (
         sourcetype=azure:activitylog
         OR sourcetype=defender:easm:task
         OR sourcetype=defender:easm:report
         OR sourcetype=defender:easm:policy
       )
-      | eval user=coalesce(caller, initiatedBy, createdBy)
+      | eval user=coalesce(caller, initiatedBy, createdBy, userPrincipalName)
       | where isnotnull(user)
       | eval action=coalesce(operationName, taskType, reportType, policyName)
-      | eval result=coalesce(status, resultType)
+      | eval result=coalesce(status, resultType, outcome)
     </query>
     <earliest>-90d@d</earliest>
     <latest>now</latest>
