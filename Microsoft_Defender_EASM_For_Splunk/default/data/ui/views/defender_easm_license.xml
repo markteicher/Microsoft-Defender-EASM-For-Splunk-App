@@ -1,31 +1,47 @@
-<!-- defender_easm_license.xml -->
-<!-- Microsoft Defender EASM for Splunk App -->
-<!-- License & Entitlement Visibility -->
+<!--
+  File: defender_easm_license.xml
+  Microsoft Defender EASM for Splunk App
+
+  Dashboard: License
+  Purpose: License limits, utilization, and entitlement visibility
+-->
 
 <dashboard version="1.1">
-  <label>License</label>
+  <label>📄 License</label>
+
   <description>
-    Visibility into Microsoft Defender EASM licensing, entitlement limits, and usage.
+    Visibility into Microsoft Defender EASM licensing, entitlement limits,
+    and asset consumption.
   </description>
 
+  <!-- ========================= -->
   <!-- BASE SEARCH -->
-  <search>
+  <!-- ========================= -->
+  <search id="base_license">
     <query>
-      index=security_defender_easm
+      `easm_index`
       sourcetype=defender:easm:license
+      | eval
+          licensed_limit=licensedAssetLimit,
+          assets_used=currentAssetCount,
+          expiration_date=expirationDate,
+          license_type=licenseType
     </query>
     <earliest>-7d@d</earliest>
     <latest>now</latest>
   </search>
 
+  <!-- ========================= -->
   <!-- KPI ROW -->
+  <!-- ========================= -->
   <row>
+
     <panel>
       <title>Total Licensed Assets</title>
       <single>
-        <search>
+        <search base="base_license">
           <query>
-            | stats max(licensedAssetLimit) AS licensed_assets
+            | stats max(licensed_limit) AS licensed_assets
           </query>
         </search>
       </single>
@@ -34,9 +50,9 @@
     <panel>
       <title>Assets in Use</title>
       <single>
-        <search>
+        <search base="base_license">
           <query>
-            | stats max(currentAssetCount) AS assets_in_use
+            | stats max(assets_used) AS assets_in_use
           </query>
         </search>
       </single>
@@ -45,52 +61,69 @@
     <panel>
       <title>Remaining Capacity</title>
       <single>
-        <search>
+        <search base="base_license">
           <query>
-            | stats max(licensedAssetLimit - currentAssetCount) AS remaining_capacity
+            | stats max(licensed_limit) AS licensed_limit,
+                    max(assets_used) AS assets_used
+            | eval remaining_capacity=licensed_limit-assets_used
+            | fields remaining_capacity
           </query>
         </search>
       </single>
     </panel>
+
   </row>
 
+  <!-- ========================= -->
   <!-- LICENSE DETAILS -->
+  <!-- ========================= -->
   <row>
+
     <panel>
       <title>License Details</title>
       <table>
-        <search>
+        <search base="base_license">
           <query>
-            | eval utilization_percent=round((currentAssetCount/licensedAssetLimit)*100,2)
+            | stats
+                max(licensed_limit) AS licensed_limit
+                max(assets_used) AS assets_used
+                latest(expiration_date) AS expiration_date
+                latest(license_type) AS license_type
+            | eval utilization_percent=round((assets_used/licensed_limit)*100,2)
             | table
-                licenseType
-                licensedAssetLimit
-                currentAssetCount
+                license_type
+                licensed_limit
+                assets_used
                 utilization_percent
-                subscriptionId
-                expirationDate
+                expiration_date
           </query>
         </search>
-        <option name="count">10</option>
+        <option name="count">5</option>
         <option name="wrap">true</option>
       </table>
     </panel>
+
   </row>
 
+  <!-- ========================= -->
   <!-- UTILIZATION TREND -->
+  <!-- ========================= -->
   <row>
+
     <panel>
       <title>License Utilization Over Time</title>
       <chart>
-        <search>
+        <search base="base_license">
           <query>
-            | timechart span=1d max(currentAssetCount) AS assets_used
+            | timechart span=1d max(assets_used) AS assets_used
           </query>
         </search>
         <option name="charting.chart">line</option>
         <option name="charting.legend.placement">none</option>
+        <option name="charting.axisTitleY.text">Assets Used</option>
       </chart>
     </panel>
+
   </row>
 
 </dashboard>
