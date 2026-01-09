@@ -1,29 +1,30 @@
-<!--
-  File: defender_easm_inventory_changes.xml
-  Location: default/data/ui/views/
-  Purpose: General → Inventory Changes
--->
+<!-- defender_easm_inventory_changes.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- General → Inventory Changes (Derived) -->
 
 <dashboard version="1.1">
   <label>Inventory Changes</label>
 
   <description>
-    Track additions and removals of Microsoft Defender EASM assets over time
-    based on inventory change events.
+    Derived view of asset additions over time based on first-seen timestamps
+    from Microsoft Defender External Attack Surface Management.
   </description>
 
   <!-- ========================= -->
   <!-- BASE SEARCH -->
   <!-- ========================= -->
-  <search id="base_inventory_changes">
+  <search id="base_inventory">
     <query>
       `easm_index`
-      sourcetype=defender:easm:inventory_changes
-      | eval
-          change_action=coalesce(action, changeType, eventType, operation),
-          asset_type=coalesce(asset_type, assetType, properties.assetType)
+      `easm_assets_sourcetypes`
+      | eval first_seen=coalesce(
+          firstSeenDateTime,
+          createdDate,
+          discoveredDate
+        )
+      | where isnotnull(first_seen)
     </query>
-    <earliest>-30d@d</earliest>
+    <earliest>-90d@d</earliest>
     <latest>now</latest>
   </search>
 
@@ -31,11 +32,25 @@
   <!-- KPI ROW -->
   <!-- ========================= -->
   <row>
+
     <panel>
-      <title>Total Inventory Changes</title>
+      <title>Total Assets Observed</title>
       <single>
-        <search base="base_inventory_changes">
+        <search base="base_inventory">
           <query>
+            | stats dc(easm_id)
+          </query>
+        </search>
+        <option name="unit">assets</option>
+      </single>
+    </panel>
+
+    <panel>
+      <title>New Assets (30d)</title>
+      <single>
+        <search base="base_inventory">
+          <query>
+            | where first_seen &gt; relative_time(now(), "-30d")
             | stats count
           </query>
         </search>
@@ -43,53 +58,31 @@
     </panel>
 
     <panel>
-      <title>Assets Added</title>
+      <title>New Assets (7d)</title>
       <single>
-        <search base="base_inventory_changes">
+        <search base="base_inventory">
           <query>
-            | search change_action IN ("Added","Add","Create","Created")
+            | where first_seen &gt; relative_time(now(), "-7d")
             | stats count
           </query>
         </search>
       </single>
     </panel>
 
-    <panel>
-      <title>Assets Removed</title>
-      <single>
-        <search base="base_inventory_changes">
-          <query>
-            | search change_action IN ("Removed","Delete","Deleted")
-            | stats count
-          </query>
-        </search>
-      </single>
-    </panel>
   </row>
 
   <!-- ========================= -->
   <!-- DISTRIBUTION -->
   <!-- ========================= -->
   <row>
-    <panel>
-      <title>Change Distribution</title>
-      <chart>
-        <search base="base_inventory_changes">
-          <query>
-            | stats count by change_action
-          </query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.legend.placement">right</option>
-      </chart>
-    </panel>
 
     <panel>
-      <title>Changes by Asset Type</title>
+      <title>New Assets by Type (30d)</title>
       <chart>
-        <search base="base_inventory_changes">
+        <search base="base_inventory">
           <query>
-            | stats count by asset_type
+            | where first_seen &gt; relative_time(now(), "-30d")
+            | stats count by sourcetype
             | sort - count
           </query>
         </search>
@@ -97,24 +90,27 @@
         <option name="charting.legend.placement">none</option>
       </chart>
     </panel>
+
   </row>
 
   <!-- ========================= -->
   <!-- TIME SERIES -->
   <!-- ========================= -->
   <row>
+
     <panel>
-      <title>Inventory Change Trend</title>
+      <title>Asset Additions Over Time</title>
       <chart>
-        <search base="base_inventory_changes">
+        <search base="base_inventory">
           <query>
-            | timechart span=1d count by change_action
+            | timechart span=1d count
           </query>
         </search>
         <option name="charting.chart">line</option>
-        <option name="charting.legend.placement">right</option>
+        <option name="charting.legend.placement">none</option>
       </chart>
     </panel>
+
   </row>
 
   <!-- ========================= -->
@@ -122,19 +118,22 @@
   <!-- ========================= -->
   <row>
     <panel>
-      <title>Inventory Change Details</title>
+      <title>New Asset Details</title>
       <table>
-        <search base="base_inventory_changes">
+        <search base="base_inventory">
           <query>
-            | eval change_date=strftime(_time,"%Y-%m-%d")
+            | eval first_seen_date=strftime(first_seen,"%Y-%m-%d")
             | table
-                change_date
-                change_action
-                asset_type
-            | sort - change_date
+                first_seen_date
+                sourcetype
+                easm_id
+                domain
+                host
+                ip_address
+            | sort - first_seen_date
           </query>
         </search>
-        <option name="count">20</option>
+        <option name="count">25</option>
         <option name="wrap">true</option>
         <option name="rowNumbers">true</option>
       </table>
