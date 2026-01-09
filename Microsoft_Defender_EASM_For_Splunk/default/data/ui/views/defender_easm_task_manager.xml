@@ -4,20 +4,13 @@
 
     Dashboard: Task Manager
     Navigation: Manage → Task Manager
-
-    Purpose:
-    Visibility into Defender EASM background tasks such as discovery runs,
-    inventory updates, enrichment jobs, and control-plane operations.
-
-    This dashboard reflects task execution telemetry collected by the Splunk
-    modular input and mapped from Defender EASM workspace activity.
 -->
 
 <dashboard version="1.1">
   <label>🧠 Defender EASM – Task Manager</label>
   <description>
-    Monitor Defender EASM background tasks, execution status, timing,
-    and failure conditions.
+    Monitor Microsoft Defender EASM background tasks including discovery,
+    inventory updates, enrichment jobs, and control-plane operations.
   </description>
 
   <!-- ========================= -->
@@ -30,7 +23,8 @@
       <single>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:tasks
+            `easm_index`
+            sourcetype=defender:easm:task
             | stats count
           </query>
         </search>
@@ -43,8 +37,9 @@
       <chart>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:tasks
-            | stats count by task_status
+            `easm_index`
+            sourcetype=defender:easm:task
+            | stats count by status
           </query>
         </search>
         <option name="charting.chart">pie</option>
@@ -56,8 +51,9 @@
       <chart>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:tasks
-            | stats count by task_type
+            `easm_index`
+            sourcetype=defender:easm:task
+            | stats count by taskType
           </query>
         </search>
         <option name="charting.chart">bar</option>
@@ -76,9 +72,14 @@
       <chart>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:tasks
-            | eval duration_sec = task_duration_ms / 1000
-            | stats avg(duration_sec) as avg_duration by task_type
+            `easm_index`
+            sourcetype=defender:easm:task
+            | eval
+                start_epoch=strptime(startTime,"%Y-%m-%dT%H:%M:%S"),
+                end_epoch=strptime(endTime,"%Y-%m-%dT%H:%M:%S")
+            | where isnotnull(end_epoch)
+            | eval duration_sec=round(end_epoch-start_epoch,2)
+            | stats avg(duration_sec) as avg_duration by taskType
           </query>
         </search>
         <option name="charting.chart">column</option>
@@ -92,7 +93,8 @@
       <chart>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:tasks
+            `easm_index`
+            sourcetype=defender:easm:task
             | timechart span=1h count
           </query>
         </search>
@@ -112,19 +114,30 @@
       <table>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:tasks
-            task_status=FAILED
+            `easm_index`
+            sourcetype=defender:easm:task
+            | where status="Failed" OR status="Error"
             | table
                 _time
-                task_name
-                task_type
-                task_status
-                error_code
-                error_message
-                workspace_name
-            | sort - _time
+                taskId
+                taskType
+                status
+                failureReason
+                errorCode
+                errorMessage
+                createdBy
+            | sort -_time
           </query>
         </search>
+
+        <drilldown>
+          <link>
+            <![CDATA[
+              /app/microsoft_defender_easm/defender_easm_task_detail?task_id=$row.taskId$
+            ]]>
+          </link>
+        </drilldown>
+
         <option name="count">10</option>
         <option name="wrap">true</option>
       </table>
@@ -142,21 +155,33 @@
       <table>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:tasks
+            `easm_index`
+            sourcetype=defender:easm:task
+            | eval
+                start_epoch=strptime(startTime,"%Y-%m-%dT%H:%M:%S"),
+                end_epoch=strptime(endTime,"%Y-%m-%dT%H:%M:%S")
+            | eval
+                duration_seconds=if(isnull(end_epoch),null(),round(end_epoch-start_epoch,2))
             | table
-                task_id
-                task_name
-                task_type
-                task_status
-                created_time
-                started_time
-                completed_time
-                task_duration_ms
-                initiated_by
-                workspace_name
-            | sort - created_time
+                taskId
+                taskType
+                status
+                duration_seconds
+                startTime
+                endTime
+                createdBy
+            | sort -startTime
           </query>
         </search>
+
+        <drilldown>
+          <link>
+            <![CDATA[
+              /app/microsoft_defender_easm/defender_easm_task_detail?task_id=$row.taskId$
+            ]]>
+          </link>
+        </drilldown>
+
         <option name="count">20</option>
         <option name="wrap">true</option>
       </table>
