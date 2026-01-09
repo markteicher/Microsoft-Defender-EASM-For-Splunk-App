@@ -11,7 +11,7 @@
   </description>
 
   <!-- ========================= -->
-  <!-- Workspace Summary -->
+  <!-- Workspace Provisioning Summary -->
   <!-- ========================= -->
   <row>
     <panel>
@@ -19,8 +19,10 @@
       <chart>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:workspaces
-            | stats count by properties.provisioningState
+            `easm_index`
+            sourcetype=defender:easm:workspaces
+            | eval provisioning_state=properties.provisioningState
+            | stats count by provisioning_state
           </query>
         </search>
         <option name="charting.chart">pie</option>
@@ -38,19 +40,36 @@
       <table>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:workspaces
+            `easm_index`
+            sourcetype=defender:easm:workspaces
+            | eval provisioning_state=properties.provisioningState
+            | eval created_by=systemData.createdBy
+            | eval created_by_type=systemData.createdByType
+            | eval created_at=systemData.createdAt
+            | eval modified_by=systemData.lastModifiedBy
+            | eval modified_at=systemData.lastModifiedAt
             | table
                 name
                 location
-                properties.provisioningState
-                systemData.createdBy
-                systemData.createdByType
-                systemData.createdAt
-                systemData.lastModifiedBy
-                systemData.lastModifiedAt
+                provisioning_state
+                created_by
+                created_by_type
+                created_at
+                modified_by
+                modified_at
                 id
           </query>
         </search>
+
+        <!-- Drilldown to Workspace Detail -->
+        <drilldown>
+          <link>
+            <![CDATA[
+              /app/microsoft_defender_easm/defender_easm_workspace_detail?form.workspace_name=$row.name$
+            ]]>
+          </link>
+        </drilldown>
+
         <option name="wrap">true</option>
         <option name="count">20</option>
       </table>
@@ -66,7 +85,8 @@
       <chart>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:workspaces
+            `easm_index`
+            sourcetype=defender:easm:workspaces
             | stats count by location
             | sort - count
           </query>
