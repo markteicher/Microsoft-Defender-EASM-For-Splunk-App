@@ -1,16 +1,51 @@
+<!--
+  File: defender_easm_gdpr_compliance.xml
+  Purpose: Dashboards → GDPR Compliance
+-->
+
 <dashboard version="1.1">
   <label>GDPR Compliance</label>
 
+  <description>
+    GDPR-relevant exposure insights derived from Microsoft Defender EASM
+    exposure intelligence. This view highlights assets and exposures that
+    may pose personal data protection risks.
+  </description>
+
   <!-- ========================= -->
-  <!-- GDPR Asset Exposure Summary -->
+  <!-- BASE SEARCH -->
+  <!-- ========================= -->
+  <search id="base_gdpr">
+    <query>
+      `easm_index`
+      sourcetype=defender:easm:exposure_insight
+      | eval
+          severity=coalesce(severity, riskLevel),
+          asset_type=coalesce(assetType, relatedAssetType)
+    </query>
+    <earliest>-30d@d</earliest>
+    <latest>now</latest>
+  </search>
+
+  <!-- ========================= -->
+  <!-- KPI SUMMARY -->
   <!-- ========================= -->
   <row>
     <panel>
-      <title>Assets Handling Personal Data</title>
       <single>
-        <search>
+        <title>Total GDPR-Relevant Exposures</title>
+        <search base="base_gdpr">
+          <query>| stats count</query>
+        </search>
+      </single>
+    </panel>
+
+    <panel>
+      <single>
+        <title>High Severity</title>
+        <search base="base_gdpr">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:assets dataClassification=personal
+            | search severity="High"
             | stats count
           </query>
         </search>
@@ -18,11 +53,11 @@
     </panel>
 
     <panel>
-      <title>Assets Exposed Publicly</title>
       <single>
-        <search>
+        <title>Medium Severity</title>
+        <search base="base_gdpr">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:assets exposure=public
+            | search severity="Medium"
             | stats count
           </query>
         </search>
@@ -30,23 +65,11 @@
     </panel>
 
     <panel>
-      <title>High-Risk GDPR Findings</title>
       <single>
-        <search>
+        <title>Low Severity</title>
+        <search base="base_gdpr">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:findings compliance=gdpr severity=high
-            | stats count
-          </query>
-        </search>
-      </single>
-    </panel>
-
-    <panel>
-      <title>Critical GDPR Findings</title>
-      <single>
-        <search>
-          <query>
-            index=security_defender_easm sourcetype=defender:easm:findings compliance=gdpr severity=critical
+            | search severity="Low"
             | stats count
           </query>
         </search>
@@ -55,74 +78,75 @@
   </row>
 
   <!-- ========================= -->
-  <!-- GDPR Findings by Severity -->
+  <!-- SEVERITY DISTRIBUTION -->
   <!-- ========================= -->
   <row>
     <panel>
-      <title>GDPR Findings by Severity</title>
+      <title>GDPR Exposure by Severity</title>
       <chart>
-        <search>
+        <search base="base_gdpr">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:findings compliance=gdpr
             | stats count by severity
           </query>
         </search>
-        <option name="charting.chart">bar</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.legend.placement">right</option>
       </chart>
     </panel>
   </row>
 
   <!-- ========================= -->
-  <!-- GDPR Exposure by Asset Type -->
+  <!-- EXPOSURE BY ASSET TYPE -->
   <!-- ========================= -->
   <row>
     <panel>
       <title>GDPR Exposure by Asset Type</title>
       <chart>
-        <search>
+        <search base="base_gdpr">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:findings compliance=gdpr
-            | stats count by assetType
+            | stats count by asset_type
           </query>
         </search>
         <option name="charting.chart">pie</option>
+        <option name="charting.legend.placement">right</option>
       </chart>
     </panel>
   </row>
 
   <!-- ========================= -->
-  <!-- GDPR Risk Trend -->
+  <!-- RISK TREND -->
   <!-- ========================= -->
   <row>
     <panel>
-      <title>GDPR Risk Trend</title>
+      <title>GDPR Exposure Trend</title>
       <chart>
-        <search>
+        <search base="base_gdpr">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:findings compliance=gdpr
             | timechart span=1d count by severity
           </query>
         </search>
         <option name="charting.chart">line</option>
+        <option name="charting.legend.placement">right</option>
       </chart>
     </panel>
   </row>
 
   <!-- ========================= -->
-  <!-- Top GDPR Risk Factors -->
+  <!-- TOP EXPOSURE TYPES -->
   <!-- ========================= -->
   <row>
     <panel>
-      <title>Top GDPR Risk Factors</title>
+      <title>Top GDPR-Relevant Exposure Types</title>
       <table>
-        <search>
+        <search base="base_gdpr">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:findings compliance=gdpr
-            | stats count by findingType
+            | stats count by insightType
             | sort - count
             | head 10
           </query>
         </search>
+        <option name="count">10</option>
+        <option name="wrap">true</option>
       </table>
     </panel>
   </row>
