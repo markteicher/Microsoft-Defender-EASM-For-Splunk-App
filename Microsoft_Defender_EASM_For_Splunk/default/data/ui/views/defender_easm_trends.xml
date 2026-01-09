@@ -1,0 +1,159 @@
+<!-- defender_easm_trends.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- Dashboard: Trends -->
+
+<dashboard version="1.1">
+  <label>Trends</label>
+  <description>
+    Time-based trends across Microsoft Defender External Attack Surface Management,
+    including assets, exposure insights, severity movement, and discovery activity.
+  </description>
+
+  <!-- ========================= -->
+  <!-- TIME PICKER -->
+  <!-- ========================= -->
+  <fieldset submitButton="false">
+    <input type="time" token="time">
+      <label>Time Range</label>
+      <default>
+        <earliest>-30d@d</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+
+  <!-- ========================= -->
+  <!-- EXPOSURE INSIGHT TRENDS -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Exposure Insights Over Time</title>
+      <chart>
+        <search>
+          <query>
+            `easm_index`
+            sourcetype=defender:easm:exposure_insight
+            | timechart span=1d count
+          </query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.legend.placement">none</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- SEVERITY TREND -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Exposure Severity Trend</title>
+      <chart>
+        <search>
+          <query>
+            `easm_index`
+            sourcetype=defender:easm:exposure_insight
+            | timechart span=1d count by severity
+          </query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- ASSET GROWTH TREND -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Asset Inventory Growth</title>
+      <chart>
+        <search>
+          <query>
+            `easm_index`
+            sourcetype=defender:easm:asset
+            | timechart span=1d dc(easm_id) as assets
+          </query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">area</option>
+        <option name="charting.legend.placement">none</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- ASSET TYPE TREND -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Asset Type Trend</title>
+      <chart>
+        <search>
+          <query>
+            `easm_index`
+            sourcetype=defender:easm:asset
+            | timechart span=1d count by asset_type
+          </query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">stackedArea</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- DISCOVERY ACTIVITY -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Discovery Activity Over Time</title>
+      <chart>
+        <search>
+          <query>
+            `easm_index`
+            sourcetype=defender:easm:discovery
+            | timechart span=1d count by status
+          </query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- TOP TREND DRIVERS -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Top Exposure Categories (Trend Window)</title>
+      <table>
+        <search>
+          <query>
+            `easm_index`
+            sourcetype=defender:easm:exposure_insight
+            | stats count by category
+            | sort - count
+            | head 10
+          </query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+
+</dashboard>
