@@ -1,0 +1,43 @@
+<!-- defender_easm_role_definitions.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- Azure RBAC role definitions relevant to Defender EASM -->
+
+<dashboard version="1.1">
+  <label>Role Definitions</label>
+
+  <description>
+    Azure RBAC role definitions used by Microsoft Defender EASM, including built-in and custom roles.
+  </description>
+
+  <search>
+    <query>
+      index=security_defender_easm
+      sourcetype=defender:easm:rbac:role_definition
+      | eval roleType=if(isCustomRole==true,"Custom","Built-in")
+      | table
+          roleName
+          roleType
+          roleDefinitionId
+          description
+          assignableScopes
+          permissions.actions
+          permissions.notActions
+          permissions.dataActions
+          permissions.notDataActions
+          systemData.createdAt
+    </query>
+    <earliest>-7d</earliest>
+    <latest>now</latest>
+  </search>
+
+  <row>
+    <panel>
+      <title>Defender EASM Role Definitions</title>
+      <table>
+        <option name="count">20</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+
+</dashboard>
