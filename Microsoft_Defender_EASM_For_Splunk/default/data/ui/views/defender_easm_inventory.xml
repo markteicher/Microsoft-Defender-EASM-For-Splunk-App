@@ -9,8 +9,26 @@
 
   <description>
     Unified inventory of assets discovered by Microsoft Defender External Attack Surface Management.
-    Assets are grouped by native EASM asset types.
+    Assets are grouped by native EASM asset types and support domain-scoped filtering.
   </description>
+
+  <!-- ========================= -->
+  <!-- DRILLDOWN / FILTER TOKENS -->
+  <!-- ========================= -->
+  <init>
+    <set token="domain">$form.domain$</set>
+  </init>
+
+  <!-- ========================= -->
+  <!-- BASE INVENTORY SEARCH -->
+  <!-- ========================= -->
+  <search id="base_inventory">
+    <query>
+      `easm_index`
+      `easm_assets_sourcetypes`
+      | where isnull("$domain$") OR domain="$domain$"
+    </query>
+  </search>
 
   <!-- ========================= -->
   <!-- INVENTORY SUMMARY KPIs -->
@@ -20,10 +38,8 @@
     <panel>
       <title>Total Assets</title>
       <single>
-        <search>
+        <search base="base_inventory">
           <query>
-            `easm_index`
-            `easm_assets_sourcetypes`
             | stats count
           </query>
         </search>
@@ -34,10 +50,8 @@
     <panel>
       <title>Asset Types</title>
       <single>
-        <search>
+        <search base="base_inventory">
           <query>
-            `easm_index`
-            `easm_assets_sourcetypes`
             | stats dc(sourcetype)
           </query>
         </search>
@@ -48,10 +62,8 @@
     <panel>
       <title>New Assets (30d)</title>
       <single>
-        <search>
+        <search base="base_inventory">
           <query>
-            `easm_index`
-            `easm_assets_sourcetypes`
             | where _time &gt; relative_time(now(), "-30d")
             | stats count
           </query>
@@ -68,16 +80,32 @@
     <panel>
       <title>Assets by Type</title>
       <chart>
-        <search>
+        <search base="base_inventory">
           <query>
-            `easm_index`
-            `easm_assets_sourcetypes`
             | stats count by sourcetype
             | sort - count
           </query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- INVENTORY GROWTH -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Inventory Growth Over Time</title>
+      <chart>
+        <search base="base_inventory">
+          <query>
+            | timechart span=1d count
+          </query>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.legend.placement">none</option>
       </chart>
     </panel>
   </row>
@@ -94,6 +122,7 @@
           <query>
             `easm_index`
             sourcetype=defender:easm:dns_record
+            | where isnull("$domain$") OR like(dns_name, "%$domain$")
             | stats count
           </query>
         </search>
@@ -108,6 +137,7 @@
           <query>
             `easm_index`
             sourcetype=defender:easm:dns_record
+            | where isnull("$domain$") OR like(dns_name, "%$domain$")
             | table
                 _time
                 dns_name
@@ -122,24 +152,12 @@
         <option name="count">15</option>
         <option name="wrap">true</option>
 
-        <!-- Row click: DNS → Asset Detail -->
+        <!-- Drilldown: DNS Record → Asset Detail -->
         <drilldown>
           <link>
             <target>defender_easm_asset_detail</target>
             <arg name="form.easm_id">$row.easm_id$</arg>
           </link>
-        </drilldown>
-
-        <!-- Right-click: DNS → Parent Domain -->
-        <drilldown type="row">
-          <condition>
-            <action>
-              <link>
-                <target>defender_easm_inventory</target>
-                <arg name="form.domain">$row.dns_name$</arg>
-              </link>
-            </action>
-          </condition>
         </drilldown>
 
       </table>
@@ -154,10 +172,8 @@
     <panel>
       <title>Asset Inventory (All Types)</title>
       <table>
-        <search>
+        <search base="base_inventory">
           <query>
-            `easm_index`
-            `easm_assets_sourcetypes`
             | eval asset_type=coalesce(asset_type, assetType, sourcetype)
             | table
                 _time
@@ -174,36 +190,12 @@
         <option name="wrap">true</option>
         <option name="rowNumbers">true</option>
 
-        <!-- Default click: Asset → Asset Detail -->
+        <!-- Drilldown: Inventory → Asset Detail -->
         <drilldown>
           <link>
             <target>defender_easm_asset_detail</target>
             <arg name="form.easm_id">$row.easm_id$</arg>
           </link>
-        </drilldown>
-
-        <!-- Right-click: Asset → Exposure Insights -->
-        <drilldown type="row">
-          <condition>
-            <action>
-              <link>
-                <target>defender_easm_attack_surface_summary</target>
-                <arg name="form.easm_id">$row.easm_id$</arg>
-              </link>
-            </action>
-          </condition>
-        </drilldown>
-
-        <!-- Right-click: Domain → Related DNS / IPs -->
-        <drilldown type="row">
-          <condition match="$row.domain$!=&quot;&quot;">
-            <action>
-              <link>
-                <target>defender_easm_inventory</target>
-                <arg name="form.domain">$row.domain$</arg>
-              </link>
-            </action>
-          </condition>
         </drilldown>
 
       </table>
