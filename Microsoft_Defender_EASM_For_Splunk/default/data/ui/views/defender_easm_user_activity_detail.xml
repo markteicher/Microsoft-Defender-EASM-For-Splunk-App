@@ -1,0 +1,55 @@
+<!-- defender_easm_user_activity_detail.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- User Activity Timeline Drilldown -->
+
+<dashboard version="1.1">
+  <label>User Activity Timeline</label>
+  <description>
+    Detailed timeline of all auditable actions performed by a selected user across Microsoft Defender EASM.
+  </description>
+
+  <!-- User Token -->
+  <init>
+    <set token="selected_user">$form.user$</set>
+  </init>
+
+  <!-- Header -->
+  <row>
+    <panel>
+      <html>
+        <h2>User: <span>$selected_user$</span></h2>
+      </html>
+    </panel>
+  </row>
+
+  <!-- Timeline -->
+  <row>
+    <panel>
+      <title>Activity Timeline</title>
+      <event>
+        <search>
+          <query>
+            index=security_defender_easm
+            (
+              sourcetype=azure:activitylog
+              OR sourcetype=defender:easm:task
+              OR sourcetype=defender:easm:report
+              OR sourcetype=defender:easm:policy
+            )
+            | eval user=coalesce(caller, initiatedBy, createdBy)
+            | search user="$selected_user$"
+            | eval action=coalesce(operationName, taskType, reportType)
+            | eval target=coalesce(resourceId, entityId, workspaceId)
+            | table _time user action target status resultDescription
+            | sort _time desc
+          </query>
+          <earliest>-90d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">50</option>
+        <option name="wrap">true</option>
+      </event>
+    </panel>
+  </row>
+
+</dashboard>
