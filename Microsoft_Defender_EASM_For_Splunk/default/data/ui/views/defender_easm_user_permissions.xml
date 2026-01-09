@@ -4,6 +4,7 @@
 
 <dashboard version="1.1">
   <label>User Permissions</label>
+
   <description>
     Azure RBAC role assignments applied to Microsoft Defender EASM workspaces.
   </description>
@@ -12,16 +13,18 @@
     <query>
       index=security_defender_easm
       sourcetype=defender:easm:rbac:role_assignment
-      | eval workspace=replace(scope,".*/workspaces/","")
+      | eval workspace_raw=mvindex(split(scope,"/workspaces/"),1)
+      | eval workspace=mvindex(split(workspace_raw,"/"),0)
       | lookup defender_easm_role_definitions roleDefinitionId OUTPUT roleName
+      | eval principal=coalesce(principalDisplayName, principalId)
       | table
-          principalName
+          principal
           principalType
           roleName
           workspace
           scope
           assignmentId
-          createdTime
+          systemData.createdAt
     </query>
     <earliest>-24h</earliest>
     <latest>now</latest>
