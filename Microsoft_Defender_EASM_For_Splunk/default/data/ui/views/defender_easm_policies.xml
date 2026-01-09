@@ -1,0 +1,43 @@
+<!-- defender_easm_policies.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- Defender EASM Policy Engine visibility -->
+
+<dashboard version="1.1">
+  <label>Policies</label>
+
+  <description>
+    Policies used by Microsoft Defender EASM to evaluate external attack surface risk,
+    prioritize findings, and generate exposure insights.
+  </description>
+
+  <search>
+    <query>
+      index=security_defender_easm
+      sourcetype=defender:easm:policy
+      | eval policyStatus=coalesce(status,"Unknown")
+      | eval severity=coalesce(severity,"Informational")
+      | table
+          policyId
+          policyName
+          policyCategory
+          severity
+          policyStatus
+          affectedAssetTypes
+          description
+          lastUpdatedTime
+    </query>
+    <earliest>-7d</earliest>
+    <latest>now</latest>
+  </search>
+
+  <row>
+    <panel>
+      <title>Defender EASM Policies</title>
+      <table>
+        <option name="count">20</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+
+</dashboard>
