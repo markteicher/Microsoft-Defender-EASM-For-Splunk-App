@@ -9,18 +9,18 @@
     Azure RBAC role assignments applied to Microsoft Defender EASM workspaces.
   </description>
 
+  <!-- BASE SEARCH -->
   <search>
     <query>
-      index=security_defender_easm
+      `easm_index`
       sourcetype=defender:easm:rbac:role_assignment
       | eval workspace_raw=mvindex(split(scope,"/workspaces/"),1)
       | eval workspace=mvindex(split(workspace_raw,"/"),0)
-      | lookup defender_easm_role_definitions roleDefinitionId OUTPUT roleName
       | eval principal=coalesce(principalDisplayName, principalId)
       | table
           principal
           principalType
-          roleName
+          roleDefinitionId
           workspace
           scope
           assignmentId
