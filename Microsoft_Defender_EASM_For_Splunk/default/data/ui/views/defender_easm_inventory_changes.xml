@@ -1,45 +1,55 @@
 <!--
-File: defender_easm_inventory_changes.xml
-Location: default/data/ui/views/
-Purpose: General → Inventory Changes
+  File: defender_easm_inventory_changes.xml
+  Location: default/data/ui/views/
+  Purpose: General → Inventory Changes
 -->
 
 <dashboard version="1.1">
   <label>Inventory Changes</label>
+
   <description>
-    Track added and removed Microsoft Defender EASM assets over time.
+    Track additions and removals of Microsoft Defender EASM assets over time
+    based on inventory change events.
   </description>
 
+  <!-- ========================= -->
+  <!-- BASE SEARCH -->
+  <!-- ========================= -->
+  <search id="base_inventory_changes">
+    <query>
+      `easm_index`
+      sourcetype=defender:easm:inventory_changes
+      | eval
+          change_action=coalesce(action, changeType, eventType, operation),
+          asset_type=coalesce(asset_type, assetType, properties.assetType)
+    </query>
+    <earliest>-30d@d</earliest>
+    <latest>now</latest>
+  </search>
+
+  <!-- ========================= -->
   <!-- KPI ROW -->
+  <!-- ========================= -->
   <row>
     <panel>
       <title>Total Inventory Changes</title>
       <single>
-        <search>
+        <search base="base_inventory_changes">
           <query>
-            index=security_defender_easm
-            sourcetype=defender:easm:inventory_changes
-            | stats count as total_changes
+            | stats count
           </query>
-          <earliest>-30d</earliest>
-          <latest>now</latest>
         </search>
-        <option name="unit"></option>
       </single>
     </panel>
 
     <panel>
       <title>Assets Added</title>
       <single>
-        <search>
+        <search base="base_inventory_changes">
           <query>
-            index=security_defender_easm
-            sourcetype=defender:easm:inventory_changes
-            action=added
-            | stats count as added
+            | search change_action IN ("Added","Add","Create","Created")
+            | stats count
           </query>
-          <earliest>-30d</earliest>
-          <latest>now</latest>
         </search>
       </single>
     </panel>
@@ -47,33 +57,27 @@ Purpose: General → Inventory Changes
     <panel>
       <title>Assets Removed</title>
       <single>
-        <search>
+        <search base="base_inventory_changes">
           <query>
-            index=security_defender_easm
-            sourcetype=defender:easm:inventory_changes
-            action=removed
-            | stats count as removed
+            | search change_action IN ("Removed","Delete","Deleted")
+            | stats count
           </query>
-          <earliest>-30d</earliest>
-          <latest>now</latest>
         </search>
       </single>
     </panel>
   </row>
 
-  <!-- DONUT / PIE -->
+  <!-- ========================= -->
+  <!-- DISTRIBUTION -->
+  <!-- ========================= -->
   <row>
     <panel>
       <title>Change Distribution</title>
       <chart>
-        <search>
+        <search base="base_inventory_changes">
           <query>
-            index=security_defender_easm
-            sourcetype=defender:easm:inventory_changes
-            | stats count by action
+            | stats count by change_action
           </query>
-          <earliest>-30d</earliest>
-          <latest>now</latest>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.legend.placement">right</option>
@@ -83,14 +87,11 @@ Purpose: General → Inventory Changes
     <panel>
       <title>Changes by Asset Type</title>
       <chart>
-        <search>
+        <search base="base_inventory_changes">
           <query>
-            index=security_defender_easm
-            sourcetype=defender:easm:inventory_changes
             | stats count by asset_type
+            | sort - count
           </query>
-          <earliest>-30d</earliest>
-          <latest>now</latest>
         </search>
         <option name="charting.chart">bar</option>
         <option name="charting.legend.placement">none</option>
@@ -98,19 +99,17 @@ Purpose: General → Inventory Changes
     </panel>
   </row>
 
+  <!-- ========================= -->
   <!-- TIME SERIES -->
+  <!-- ========================= -->
   <row>
     <panel>
       <title>Inventory Change Trend</title>
       <chart>
-        <search>
+        <search base="base_inventory_changes">
           <query>
-            index=security_defender_easm
-            sourcetype=defender:easm:inventory_changes
-            | timechart span=1d count by action
+            | timechart span=1d count by change_action
           </query>
-          <earliest>-30d</earliest>
-          <latest>now</latest>
         </search>
         <option name="charting.chart">line</option>
         <option name="charting.legend.placement">right</option>
@@ -118,21 +117,22 @@ Purpose: General → Inventory Changes
     </panel>
   </row>
 
+  <!-- ========================= -->
   <!-- DETAIL TABLE -->
+  <!-- ========================= -->
   <row>
     <panel>
       <title>Inventory Change Details</title>
       <table>
-        <search>
+        <search base="base_inventory_changes">
           <query>
-            index=security_defender_easm
-            sourcetype=defender:easm:inventory_changes
             | eval change_date=strftime(_time,"%Y-%m-%d")
-            | stats count as change_count by change_date action asset_type
+            | table
+                change_date
+                change_action
+                asset_type
             | sort - change_date
           </query>
-          <earliest>-30d</earliest>
-          <latest>now</latest>
         </search>
         <option name="count">20</option>
         <option name="wrap">true</option>
