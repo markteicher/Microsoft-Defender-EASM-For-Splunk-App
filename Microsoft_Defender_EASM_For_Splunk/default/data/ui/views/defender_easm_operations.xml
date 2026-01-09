@@ -1,52 +1,72 @@
-<!-- default/data/ui/views/defender_easm_operations.xml -->
-<!-- Microsoft Defender EASM for Splunk App -->
-<!-- Control Plane Operations Dashboard -->
+<!--
+  File: defender_easm_operations.xml
+  Microsoft Defender EASM for Splunk App
+
+  Dashboard: Operations
+  Purpose: Control Plane & Data Plane operation visibility
+-->
 
 <dashboard version="1.1" theme="light">
-  <label>Operations</label>
+  <label>⚙️ Operations</label>
 
   <description>
-    Control plane operations supported by Microsoft Defender External Attack Surface Management.
-    This view reflects available provider actions and permissions.
+    Control plane and data-plane operations supported by Microsoft Defender
+    External Attack Surface Management. Derived from the Operations API.
   </description>
 
   <!-- ========================= -->
-  <!-- Operations Overview -->
+  <!-- BASE SEARCH -->
+  <!-- ========================= -->
+  <search id="base_operations">
+    <query>
+      `easm_index`
+      sourcetype=defender:easm:operations
+      | eval action_type=if(isDataAction=true,"Data Action","Control Plane Action")
+    </query>
+    <earliest>-30d@d</earliest>
+    <latest>now</latest>
+  </search>
+
+  <!-- ========================= -->
+  <!-- OPERATIONS OVERVIEW -->
   <!-- ========================= -->
   <row>
     <panel>
       <title>Operation Types</title>
       <chart>
-        <search>
+        <search base="base_operations">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:operations
-            | stats count by isDataAction
-            | eval actionType=if(isDataAction=true,"Data Action","Control Plane Action")
-            | stats sum(count) by actionType
+            | stats count by action_type
           </query>
         </search>
         <option name="charting.chart">pie</option>
-        <option name="legend.placement">right</option>
+        <option name="charting.legend.placement">right</option>
       </chart>
     </panel>
   </row>
 
   <!-- ========================= -->
-  <!-- Operations Table -->
+  <!-- OPERATIONS TABLE -->
   <!-- ========================= -->
   <row>
     <panel>
       <title>Available EASM Operations</title>
       <table>
-        <search>
+        <search base="base_operations">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:operations
-            | table name display.provider display.resource display.operation display.description isDataAction
+            | table
+                name
+                display.provider
+                display.resource
+                display.operation
+                display.description
+                isDataAction
             | rename
                 display.provider AS provider
                 display.resource AS resource
                 display.operation AS operation
                 display.description AS description
+            | sort provider resource operation
           </query>
         </search>
         <option name="wrap">true</option>
@@ -56,23 +76,23 @@
   </row>
 
   <!-- ========================= -->
-  <!-- Operation Coverage -->
+  <!-- OPERATION COVERAGE -->
   <!-- ========================= -->
   <row>
     <panel>
       <title>Operation Coverage by Resource</title>
       <chart>
-        <search>
+        <search base="base_operations">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:operations
             | stats count by display.resource
+            | rename display.resource AS resource
             | sort - count
           </query>
         </search>
         <option name="charting.chart">bar</option>
         <option name="charting.axisTitleX.text">Resource Type</option>
         <option name="charting.axisTitleY.text">Operation Count</option>
-        <option name="legend.placement">none</option>
+        <option name="charting.legend.placement">none</option>
       </chart>
     </panel>
   </row>
