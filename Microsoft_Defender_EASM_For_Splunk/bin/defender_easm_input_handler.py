@@ -3,47 +3,44 @@
 
 """
 Microsoft Defender EASM for Splunk App
-Modular Input Management Handler
+Modular Input Management REST Handler
 
 Responsibilities:
-- List Defender EASM modular inputs
-- Enable / disable inputs safely
-- Report input status
+- List modular inputs
+- Report status
+- Enable / disable inputs
 
-Design constraints:
-- NO ingestion logic
-- NO API calls
-- NO business logic
-- Splunk REST handler only
+NO ingestion logic
+NO API calls
+NO business logic
 """
 
-import json
 import splunk.admin as admin
 import splunk.entity as entity
 
-
 APP_NAME = "Microsoft_Defender_EASM_For_Splunk"
-INPUTS_CONF = "inputs"
+CONF_FILE = "inputs"
 
 
 class DefenderEASMInputHandler(admin.MConfigHandler):
-    """
-    Handles:
-    - GET  /defender_easm/inputs
-    - GET  /defender_easm/inputs/status
-    - POST /defender_easm/inputs/enable
-    - POST /defender_easm/inputs/disable
-    """
 
+    ############################################
+    # SETUP
+    ############################################
     def setup(self):
-        pass
+        if self.requestedAction == admin.ACTION_EDIT:
+            self.supportedArgs.addReqArg("name")
+            self.supportedArgs.addReqArg("action")
 
+    ############################################
+    # LIST INPUTS
+    ############################################
     def handleList(self, confInfo):
         """
-        List all Defender EASM modular inputs
+        GET /defender_easm/inputs
         """
         inputs = entity.getEntities(
-            [INPUTS_CONF],
+            f"configs/conf-{CONF_FILE}",
             namespace=APP_NAME,
             owner="nobody"
         )
@@ -54,29 +51,33 @@ class DefenderEASMInputHandler(admin.MConfigHandler):
             confInfo[name].append("sourcetype", stanza.get("sourcetype"))
             confInfo[name].append("index", stanza.get("index"))
 
+    ############################################
+    # ENABLE / DISABLE INPUT
+    ############################################
     def handleEdit(self, confInfo):
         """
-        Enable or disable a modular input.
-        Expects:
-        - name
-        - action = enable | disable
+        POST /defender_easm/inputs/enable
+        POST /defender_easm/inputs/disable
         """
-        name = self.callerArgs.data.get("name")
-        action = self.callerArgs.data.get("action")
+        name = self.callerArgs["name"][0]
+        action = self.callerArgs["action"][0]
 
-        if not name or not action:
+        if action not in ("enable", "disable"):
             raise admin.ArgValidationException(
-                "Both 'name' and 'action' are required"
+                "action must be 'enable' or 'disable'"
             )
 
         disabled_value = "0" if action == "enable" else "1"
 
-        entity.setEntity(
-            [INPUTS_CONF, name],
-            {"disabled": disabled_value},
+        stanza = entity.getEntity(
+            f"configs/conf-{CONF_FILE}",
+            name,
             namespace=APP_NAME,
             owner="nobody"
         )
+
+        stanza["disabled"] = disabled_value
+        entity.setEntity(stanza, self.getSessionKey())
 
         confInfo["result"].append("name", name)
         confInfo["result"].append("action", action)
@@ -84,4 +85,4 @@ class DefenderEASMInputHandler(admin.MConfigHandler):
 
 
 if __name__ == "__main__":
-    admin.init(DefenderEASMInputHandler, admin.CONTEXT_APP_AND_USER)
+    admin.init(DefenderEASMInputHandler, admin.CONTEXT_NONE)
