@@ -3,41 +3,57 @@
 <!-- Dashboard: Report Output Coverage vs Asset Types -->
 
 <dashboard version="1.1">
-  <label>Report Output Coverage vs Asset Types</label>
+  <label>Report Coverage vs Asset Types</label>
+
   <description>
-    Visibility into Microsoft Defender EASM report coverage across asset types.
-    Shows which asset categories are included in reports and highlights gaps.
+    Visibility into Microsoft Defender EASM report output coverage across
+    asset types. Highlights coverage distribution and gaps between inventory
+    and reported assets.
   </description>
 
-  <!-- Time Range Picker -->
-  <row>
-    <panel>
-      <input type="time" token="time_range">
-        <label>Time Range</label>
-        <default>
-          <earliest>-30d</earliest>
-          <latest>now</latest>
-        </default>
-      </input>
-    </panel>
-  </row>
+  <!-- ========================= -->
+  <!-- TIME RANGE -->
+  <!-- ========================= -->
 
-  <!-- Coverage Summary Table -->
+  <fieldset submitButton="false">
+    <input type="time" token="time">
+      <label>Time Range</label>
+      <default>
+        <earliest>-30d@d</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+
+  <!-- ========================= -->
+  <!-- BASE SEARCH: REPORT OUTPUT -->
+  <!-- ========================= -->
+
+  <search id="report_output">
+    <query>
+      `easm_index`
+      sourcetype=defender:easm:report_output
+    </query>
+    <earliest>$time.earliest$</earliest>
+    <latest>$time.latest$</latest>
+  </search>
+
+  <!-- ========================= -->
+  <!-- COVERAGE SUMMARY -->
+  <!-- ========================= -->
+
   <row>
     <panel>
       <title>Report Coverage by Asset Type</title>
       <table>
-        <search>
+        <search base="report_output">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:report_output
             | stats
-                count(report_id) as reports_generated
-                dc(asset_id) as unique_assets
-              by asset_type
-            | sort -unique_assets
+                dc(report_id) AS reports_generated
+                dc(asset_id)  AS assets_reported
+              BY asset_type
+            | sort - assets_reported
           </query>
-          <earliest>$time_range.earliest$</earliest>
-          <latest>$time_range.latest$</latest>
         </search>
         <option name="count">10</option>
         <option name="wrap">true</option>
@@ -45,18 +61,18 @@
     </panel>
   </row>
 
-  <!-- Coverage Distribution -->
+  <!-- ========================= -->
+  <!-- COVERAGE DISTRIBUTION -->
+  <!-- ========================= -->
+
   <row>
     <panel>
-      <title>Asset Type Coverage Distribution</title>
+      <title>Reported Asset Distribution</title>
       <chart>
-        <search>
+        <search base="report_output">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:report_output
-            | stats dc(asset_id) as asset_count by asset_type
+            | stats dc(asset_id) AS assets_reported BY asset_type
           </query>
-          <earliest>$time_range.earliest$</earliest>
-          <latest>$time_range.latest$</latest>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.legend.placement">right</option>
@@ -64,27 +80,42 @@
     </panel>
   </row>
 
-  <!-- Coverage Gap Identification -->
+  <!-- ========================= -->
+  <!-- COVERAGE GAP ANALYSIS -->
+  <!-- ========================= -->
+
   <row>
     <panel>
-      <title>Potential Coverage Gaps</title>
+      <title>Coverage Gaps by Asset Type</title>
       <table>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:asset
-            | stats dc(asset_id) as total_assets by asset_type
+            `easm_index` `easm_assets_sourcetypes`
+            | stats dc(id) AS total_assets BY sourcetype
+            | eval asset_type=case(
+                sourcetype="defender:easm:domain","Domain",
+                sourcetype="defender:easm:host","Host",
+                sourcetype="defender:easm:page","Page",
+                sourcetype="defender:easm:ip","IP Address",
+                sourcetype="defender:easm:ip_block","IP Block",
+                sourcetype="defender:easm:asn","ASN",
+                sourcetype="defender:easm:ssl_certificate","SSL Certificate",
+                sourcetype="defender:easm:whois_contact","WHOIS Contact"
+              )
+            | fields asset_type total_assets
             | join asset_type [
-                search index=security_defender_easm sourcetype=defender:easm:report_output
-                | stats dc(asset_id) as reported_assets by asset_type
+                search `easm_index` sourcetype=defender:easm:report_output
+                | stats dc(asset_id) AS reported_assets BY asset_type
               ]
-            | eval reported_assets=coalesce(reported_assets, 0)
-            | eval coverage_percent=round((reported_assets/total_assets)*100, 2)
+            | eval reported_assets=coalesce(reported_assets,0)
+            | eval coverage_percent=round((reported_assets/total_assets)*100,2)
             | table asset_type total_assets reported_assets coverage_percent
             | sort coverage_percent
           </query>
-          <earliest>$time_range.earliest$</earliest>
-          <latest>$time_range.latest$</latest>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
         </search>
+
         <option name="count">10</option>
         <option name="wrap">true</option>
       </table>
