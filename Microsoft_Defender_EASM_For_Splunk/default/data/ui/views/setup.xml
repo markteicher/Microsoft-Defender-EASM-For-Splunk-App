@@ -1,0 +1,82 @@
+<!-- default/data/ui/views/setup.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- Setup & Configuration -->
+
+<dashboard version="1.1">
+  <label>Setup</label>
+
+  <description>
+    Configure Microsoft Defender External Attack Surface Management API access.
+  </description>
+
+  <fieldset submitButton="true">
+
+    <!-- Azure Authentication -->
+    <input type="text" token="tenant_id">
+      <label>Azure Tenant ID</label>
+    </input>
+
+    <input type="text" token="subscription_id">
+      <label>Azure Subscription ID</label>
+    </input>
+
+    <input type="text" token="resource_group">
+      <label>Resource Group</label>
+    </input>
+
+    <input type="text" token="workspace_name">
+      <label>Defender EASM Workspace Name</label>
+    </input>
+
+    <input type="text" token="client_id">
+      <label>Azure Client ID</label>
+    </input>
+
+    <input type="password" token="client_secret">
+      <label>Azure Client Secret</label>
+    </input>
+
+    <input type="text" token="authority_url">
+      <label>Azure Authority URL</label>
+      <default>https://login.microsoftonline.com</default>
+    </input>
+
+    <!-- Index Configuration -->
+    <input type="text" token="target_index">
+      <label>Target Index</label>
+      <default>security_defender_easm</default>
+    </input>
+
+    <!-- Proxy Configuration -->
+    <input type="checkbox" token="use_proxy">
+      <label>Use Proxy</label>
+      <choice value="true">Enable Proxy</choice>
+    </input>
+
+    <input type="text" token="proxy_url">
+      <label>Proxy URL</label>
+    </input>
+
+    <input type="text" token="proxy_username">
+      <label>Proxy Username</label>
+    </input>
+
+    <input type="password" token="proxy_password">
+      <label>Proxy Password</label>
+    </input>
+
+  </fieldset>
+
+  <!-- Save Configuration -->
+  <row>
+    <panel>
+      <title>Save Configuration</title>
+      <html>
+        <p>
+          Click <strong>Submit</strong> to save settings.
+        </p>
+      </html>
+    </panel>
+  </row>
+
+</dashboard>
