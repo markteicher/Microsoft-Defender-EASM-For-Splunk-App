@@ -1,16 +1,39 @@
+<!-- defender_easm_security_posture.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- Dashboard: Security Posture -->
+
 <dashboard version="1.1">
   <label>Security Posture</label>
 
+  <description>
+    High-level security posture overview derived from Microsoft Defender
+    External Attack Surface Management findings and asset exposure.
+  </description>
+
   <!-- ========================= -->
-  <!-- Overall Security Posture -->
+  <!-- BASE SEARCH -->
+  <!-- ========================= -->
+  <search id="posture_base">
+    <query>
+      `easm_index`
+      sourcetype=defender:easm:findings
+    </query>
+    <earliest>-30d@d</earliest>
+    <latest>now</latest>
+  </search>
+
+  <!-- ========================= -->
+  <!-- OVERALL SECURITY POSTURE -->
   <!-- ========================= -->
   <row>
+
     <panel>
       <title>Total Assets Evaluated</title>
       <single>
         <search>
           <query>
-            index=security_defender_easm sourcetype=defender:easm:assets
+            `easm_index`
+            sourcetype=defender:easm:assets
             | stats count
           </query>
         </search>
@@ -20,9 +43,8 @@
     <panel>
       <title>Assets With Findings</title>
       <single>
-        <search>
+        <search base="posture_base">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:findings
             | stats dc(assetId)
           </query>
         </search>
@@ -32,9 +54,9 @@
     <panel>
       <title>Critical Posture Issues</title>
       <single>
-        <search>
+        <search base="posture_base">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:findings severity=critical
+            | search severity=critical
             | stats count
           </query>
         </search>
@@ -44,27 +66,28 @@
     <panel>
       <title>High Posture Issues</title>
       <single>
-        <search>
+        <search base="posture_base">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:findings severity=high
+            | search severity=high
             | stats count
           </query>
         </search>
       </single>
     </panel>
+
   </row>
 
   <!-- ========================= -->
-  <!-- Findings by Severity -->
+  <!-- FINDINGS BY SEVERITY -->
   <!-- ========================= -->
   <row>
     <panel>
       <title>Findings by Severity</title>
       <chart>
-        <search>
+        <search base="posture_base">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:findings
             | stats count by severity
+            | sort -count
           </query>
         </search>
         <option name="charting.chart">bar</option>
@@ -73,16 +96,16 @@
   </row>
 
   <!-- ========================= -->
-  <!-- Posture by Asset Type -->
+  <!-- POSTURE BY ASSET TYPE -->
   <!-- ========================= -->
   <row>
     <panel>
       <title>Posture Issues by Asset Type</title>
       <chart>
-        <search>
+        <search base="posture_base">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:findings
             | stats count by assetType
+            | sort -count
           </query>
         </search>
         <option name="charting.chart">pie</option>
@@ -91,38 +114,39 @@
   </row>
 
   <!-- ========================= -->
-  <!-- Security Posture Trend -->
+  <!-- SECURITY POSTURE TREND -->
   <!-- ========================= -->
   <row>
     <panel>
       <title>Security Posture Trend</title>
       <chart>
-        <search>
+        <search base="posture_base">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:findings
             | timechart span=1d count by severity
           </query>
         </search>
         <option name="charting.chart">line</option>
+        <option name="charting.legend.placement">right</option>
       </chart>
     </panel>
   </row>
 
   <!-- ========================= -->
-  <!-- Top Posture Weaknesses -->
+  <!-- TOP POSTURE WEAKNESSES -->
   <!-- ========================= -->
   <row>
     <panel>
       <title>Top Security Weaknesses</title>
       <table>
-        <search>
+        <search base="posture_base">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:findings
             | stats count by findingType
-            | sort - count
+            | sort -count
             | head 10
           </query>
         </search>
+        <option name="count">10</option>
+        <option name="wrap">true</option>
       </table>
     </panel>
   </row>
