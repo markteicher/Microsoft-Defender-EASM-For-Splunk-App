@@ -1,59 +1,73 @@
 <!-- default/data/ui/views/defender_easm_data_connections.xml -->
 <!-- Microsoft Defender EASM for Splunk App -->
-<!-- Data Connections – aligned to data-plane API -->
+<!-- Data Connections – aligned to Defender EASM data-plane API -->
 
 <dashboard version="1.1">
   <label>Data Connections</label>
 
   <description>
-    Operational view of Defender EASM data-plane connections including
-    connection type, status, sync cadence, and runtime health.
+    Operational view of Microsoft Defender EASM data-plane connections,
+    including connection type, provisioning state, cadence, and health.
   </description>
 
-  <!-- Base search -->
+  <!-- ========================= -->
+  <!-- BASE SEARCH -->
+  <!-- ========================= -->
   <search id="base_data_connections">
     <query>
-      index=security_defender_easm sourcetype=defender:easm:data_connection
-      | eval last_run=strftime(lastRunTime,"%Y-%m-%d %H:%M:%S")
-      | eval next_run=strftime(nextRunTime,"%Y-%m-%d %H:%M:%S")
-      | eval created=strftime(createdTime,"%Y-%m-%d %H:%M:%S")
-      | eval updated=strftime(updatedTime,"%Y-%m-%d %H:%M:%S")
+      `easm_index`
+      sourcetype=defender:easm:data_connection
+      | eval createdTime=strftime(createdTime,"%Y-%m-%d %H:%M:%S")
+      | eval lastModifiedTime=strftime(lastModifiedTime,"%Y-%m-%d %H:%M:%S")
+      | eval lastSyncTime=strftime(lastSyncTime,"%Y-%m-%d %H:%M:%S")
     </query>
     <earliest>-24h</earliest>
     <latest>now</latest>
   </search>
 
-  <!-- KPI Row -->
+  <!-- ========================= -->
+  <!-- KPI ROW -->
+  <!-- ========================= -->
   <row>
     <panel>
       <single>
-        <search base="base_data_connections">
-          <query>| stats count</query>
-        </search>
         <title>Total Data Connections</title>
+        <search base="base_data_connections">
+          <query>
+            | stats count
+          </query>
+        </search>
       </single>
     </panel>
 
     <panel>
       <single>
+        <title>Provisioned</title>
         <search base="base_data_connections">
-          <query>| search status="Connected" | stats count</query>
+          <query>
+            | search provisioningState="Succeeded"
+            | stats count
+          </query>
         </search>
-        <title>Connected</title>
       </single>
     </panel>
 
     <panel>
       <single>
+        <title>Failed / In Progress</title>
         <search base="base_data_connections">
-          <query>| search status!="Connected" | stats count</query>
+          <query>
+            | search provisioningState!="Succeeded"
+            | stats count
+          </query>
         </search>
-        <title>Disconnected / Error</title>
       </single>
     </panel>
   </row>
 
-  <!-- Data Connections Table -->
+  <!-- ========================= -->
+  <!-- DATA CONNECTION INVENTORY -->
+  <!-- ========================= -->
   <row>
     <panel>
       <title>Data Connection Inventory</title>
@@ -61,7 +75,15 @@
       <table>
         <search base="base_data_connections">
           <query>
-            | table name type status content frequency last_run next_run created updated
+            | table
+                name
+                type
+                provisioningState
+                connectionType
+                cadence
+                lastSyncTime
+                createdTime
+                lastModifiedTime
             | sort name
           </query>
         </search>
@@ -69,28 +91,31 @@
         <option name="count">20</option>
         <option name="wrap">true</option>
 
-        <!-- Drilldown -->
         <drilldown>
-          <set token="dc_name">$row.name$</set>
+          <set token="connection_name">$row.name$</set>
         </drilldown>
       </table>
     </panel>
   </row>
 
-  <!-- Detail Panel -->
+  <!-- ========================= -->
+  <!-- CONNECTION DETAIL -->
+  <!-- ========================= -->
   <row>
     <panel>
-      <title>Connection Details: $dc_name$</title>
+      <title>Connection Details: $connection_name$</title>
 
       <table>
         <search base="base_data_connections">
           <query>
-            | search name="$dc_name$"
+            | search name="$connection_name$"
             | transpose
             | rename column as Field, row 1 as Value
           </query>
         </search>
-        <option name="count">20</option>
+
+        <option name="count">25</option>
+        <option name="wrap">true</option>
       </table>
     </panel>
   </row>
