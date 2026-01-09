@@ -1,0 +1,40 @@
+<!-- defender_easm_user_permissions.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- Azure RBAC permissions scoped to Defender EASM workspaces -->
+
+<dashboard version="1.1">
+  <label>User Permissions</label>
+  <description>
+    Azure RBAC role assignments applied to Microsoft Defender EASM workspaces.
+  </description>
+
+  <search>
+    <query>
+      index=security_defender_easm
+      sourcetype=defender:easm:rbac:role_assignment
+      | eval workspace=replace(scope,".*/workspaces/","")
+      | lookup defender_easm_role_definitions roleDefinitionId OUTPUT roleName
+      | table
+          principalName
+          principalType
+          roleName
+          workspace
+          scope
+          assignmentId
+          createdTime
+    </query>
+    <earliest>-24h</earliest>
+    <latest>now</latest>
+  </search>
+
+  <row>
+    <panel>
+      <title>Defender EASM Workspace Permissions</title>
+      <table>
+        <option name="count">20</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+
+</dashboard>
