@@ -1,132 +1,140 @@
 <!--
   File: defender_easm_discovery.xml
   Purpose: Manage → Discovery
+  Scope: Defender EASM discovery execution (tasks-based)
 -->
 
 <dashboard version="1.1">
   <label>Discovery</label>
 
+  <description>
+    Monitor Defender EASM discovery execution using task lifecycle data
+    from the data-plane Tasks API.
+  </description>
+
   <!-- ========================= -->
-  <!-- Discovery Overview -->
+  <!-- BASE SEARCH -->
+  <!-- ========================= -->
+  <search id="base_discovery_tasks">
+    <query>
+      `easm_index`
+      sourcetype=defender:easm:task
+      | where task_type="Discovery"
+      | eval startTime=strftime(startTime,"%Y-%m-%d %H:%M:%S")
+      | eval endTime=strftime(endTime,"%Y-%m-%d %H:%M:%S")
+    </query>
+    <earliest>-30d@d</earliest>
+    <latest>now</latest>
+  </search>
+
+  <!-- ========================= -->
+  <!-- DISCOVERY OVERVIEW -->
   <!-- ========================= -->
   <row>
     <panel>
-      <title>Total Discovery Jobs</title>
       <single>
-        <search>
-          <query>
-            index=security_defender_easm sourcetype=defender:easm:discovery
-            | stats count
-          </query>
+        <title>Total Discovery Tasks</title>
+        <search base="base_discovery_tasks">
+          <query>| stats count</query>
         </search>
       </single>
     </panel>
 
     <panel>
-      <title>Active Discovery Jobs</title>
       <single>
-        <search>
-          <query>
-            index=security_defender_easm sourcetype=defender:easm:discovery status=active
-            | stats count
-          </query>
+        <title>Running</title>
+        <search base="base_discovery_tasks">
+          <query>| search task_state="Running" | stats count</query>
         </search>
       </single>
     </panel>
 
     <panel>
-      <title>Completed Discovery Jobs</title>
       <single>
-        <search>
-          <query>
-            index=security_defender_easm sourcetype=defender:easm:discovery status=completed
-            | stats count
-          </query>
+        <title>Succeeded</title>
+        <search base="base_discovery_tasks">
+          <query>| search task_state="Succeeded" | stats count</query>
         </search>
       </single>
     </panel>
 
     <panel>
-      <title>Failed Discovery Jobs</title>
       <single>
-        <search>
-          <query>
-            index=security_defender_easm sourcetype=defender:easm:discovery status=failed
-            | stats count
-          </query>
+        <title>Failed</title>
+        <search base="base_discovery_tasks">
+          <query>| search task_state="Failed" | stats count</query>
         </search>
       </single>
     </panel>
   </row>
 
   <!-- ========================= -->
-  <!-- Discovery Job Status -->
+  <!-- TASK STATE DISTRIBUTION -->
   <!-- ========================= -->
   <row>
     <panel>
-      <title>Discovery Jobs by Status</title>
+      <title>Discovery Tasks by State</title>
       <chart>
-        <search>
+        <search base="base_discovery_tasks">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:discovery
-            | stats count by status
+            | stats count by task_state
           </query>
         </search>
-        <option name="charting.chart">bar</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.legend.placement">right</option>
       </chart>
     </panel>
   </row>
 
   <!-- ========================= -->
-  <!-- Discovery Execution Trend -->
+  <!-- EXECUTION TREND -->
   <!-- ========================= -->
   <row>
     <panel>
       <title>Discovery Execution Trend</title>
       <chart>
-        <search>
+        <search base="base_discovery_tasks">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:discovery
-            | timechart span=1d count by status
+            | timechart span=1d count by task_state
           </query>
         </search>
         <option name="charting.chart">line</option>
+        <option name="charting.legend.placement">right</option>
       </chart>
     </panel>
   </row>
 
   <!-- ========================= -->
-  <!-- Discovered Assets by Type -->
+  <!-- DISCOVERY TASK DETAILS -->
   <!-- ========================= -->
   <row>
     <panel>
-      <title>Assets Discovered by Type</title>
-      <chart>
-        <search>
-          <query>
-            index=security_defender_easm sourcetype=defender:easm:assets
-            | stats count by assetType
-          </query>
-        </search>
-        <option name="charting.chart">pie</option>
-      </chart>
-    </panel>
-  </row>
-
-  <!-- ========================= -->
-  <!-- Discovery Job Details -->
-  <!-- ========================= -->
-  <row>
-    <panel>
-      <title>Discovery Job Details</title>
+      <title>Discovery Task Details</title>
       <table>
-        <search>
+        <search base="base_discovery_tasks">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:discovery
-            | table discoveryId name status startTime endTime assetCount errorMessage
+            | table
+                task_id
+                name
+                task_state
+                startTime
+                endTime
+                errorCode
+                errorMessage
             | sort - startTime
           </query>
         </search>
+
+        <option name="count">20</option>
+        <option name="wrap">true</option>
+
+        <drilldown>
+          <link>
+            <![CDATA[
+              /app/microsoft_defender_easm/defender_easm_task_detail?task_id=$row.task_id$
+            ]]>
+          </link>
+        </drilldown>
       </table>
     </panel>
   </row>
