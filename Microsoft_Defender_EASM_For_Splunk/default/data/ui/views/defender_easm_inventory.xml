@@ -6,20 +6,21 @@
   <label>Inventory</label>
   <description>
     Unified inventory of assets discovered by Microsoft Defender External Attack Surface Management.
-    Provides visibility into asset types, volume, and discovery trends.
+    Assets are grouped by native EASM asset types.
   </description>
 
   <!-- ========================= -->
   <!-- INVENTORY SUMMARY KPIs -->
   <!-- ========================= -->
   <row>
+
     <panel>
       <title>Total Assets</title>
       <single>
         <search>
           <query>
             `easm_index`
-            sourcetype=defender:easm:asset
+            `easm_assets_sourcetypes`
             | stats count
           </query>
         </search>
@@ -33,8 +34,8 @@
         <search>
           <query>
             `easm_index`
-            sourcetype=defender:easm:asset
-            | stats dc(asset_type)
+            `easm_assets_sourcetypes`
+            | stats dc(sourcetype)
           </query>
         </search>
         <option name="unit">types</option>
@@ -47,13 +48,14 @@
         <search>
           <query>
             `easm_index`
-            sourcetype=defender:easm:asset
+            `easm_assets_sourcetypes`
             | where _time &gt; relative_time(now(), "-30d")
             | stats count
           </query>
         </search>
       </single>
     </panel>
+
   </row>
 
   <!-- ========================= -->
@@ -66,8 +68,8 @@
         <search>
           <query>
             `easm_index`
-            sourcetype=defender:easm:asset
-            | stats count by asset_type
+            `easm_assets_sourcetypes`
+            | stats count by sourcetype
             | sort - count
           </query>
         </search>
@@ -87,7 +89,7 @@
         <search>
           <query>
             `easm_index`
-            sourcetype=defender:easm:asset
+            `easm_assets_sourcetypes`
             | timechart span=1d count
           </query>
         </search>
@@ -98,23 +100,67 @@
   </row>
 
   <!-- ========================= -->
-  <!-- ASSET INVENTORY TABLE -->
+  <!-- DNS RECORDS (NEW) -->
   <!-- ========================= -->
   <row>
+
     <panel>
-      <title>Asset Inventory</title>
+      <title>DNS Records</title>
+      <single>
+        <search>
+          <query>
+            `easm_index`
+            sourcetype=defender:easm:dns_record
+            | stats count
+          </query>
+        </search>
+        <option name="unit">records</option>
+      </single>
+    </panel>
+
+    <panel>
+      <title>DNS Record Inventory</title>
       <table>
         <search>
           <query>
             `easm_index`
-            sourcetype=defender:easm:asset
+            sourcetype=defender:easm:dns_record
             | table
                 _time
-                asset_type
+                dns_name
+                dns_record_type
+                dns_record_value
+                dns_ttl
                 easm_id
-                display_name
-                discovery_source
-                confidence
+            | sort - _time
+          </query>
+        </search>
+        <option name="count">15</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+
+  </row>
+
+  <!-- ========================= -->
+  <!-- ASSET INVENTORY TABLE -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Asset Inventory (All Types)</title>
+      <table>
+        <search>
+          <query>
+            `easm_index`
+            `easm_assets_sourcetypes`
+            | table
+                _time
+                sourcetype
+                easm_id
+                asset_type
+                domain
+                host
+                ip_address
             | sort - _time
           </query>
         </search>
