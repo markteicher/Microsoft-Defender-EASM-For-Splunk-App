@@ -1,68 +1,74 @@
-<!-- defender_easm_health.xml -->
-<!-- Microsoft Defender EASM for Splunk App -->
-<!-- Platform & Ingestion Health Monitoring -->
+<!--
+  File: defender_easm_health.xml
+  Purpose: Dashboards → Health
+-->
 
 <dashboard version="1.1">
-  <label>❤️ Health</label>
+  <label>Health</label>
+
   <description>
-    Real-time platform health, API availability, and ingestion status
-    for Microsoft Defender External Attack Surface Management.
+    Platform and ingestion health visibility for Microsoft Defender
+    External Attack Surface Management. Displays component status,
+    failures, and operational trends.
   </description>
 
+  <!-- ========================= -->
   <!-- BASE SEARCH -->
-  <search>
+  <!-- ========================= -->
+  <search id="base_health">
     <query>
-      index=security_defender_easm
+      `easm_index`
       sourcetype=defender:easm:health
+      | eval
+          component=coalesce(componentName, name, properties.name),
+          status=coalesce(status, properties.status),
+          error_code=coalesce(errorCode, properties.errorCode),
+          error_message=coalesce(errorMessage, properties.errorMessage),
+          event_time=coalesce(lastCheckedTime, _time)
     </query>
     <earliest>-24h@h</earliest>
     <latest>now</latest>
   </search>
 
+  <!-- ========================= -->
   <!-- HEALTH KPIs -->
+  <!-- ========================= -->
   <row>
     <panel>
-      <title>❤️ Overall Health</title>
+      <title>Overall Health</title>
       <single>
-        <search>
+        <search base="base_health">
           <query>
             | stats latest(status) AS status
-            | eval status_icon=case(
+            | eval display=case(
                 status="Healthy","🟢 Healthy",
                 status="Degraded","🟠 Degraded",
-                status="Failed","🔴 Failed"
+                status="Failed","🔴 Failed",
+                true(),"⚪ Unknown"
               )
-            | fields status_icon
+            | fields display
           </query>
         </search>
       </single>
     </panel>
 
     <panel>
-      <title>🕒 Last Successful Collection</title>
+      <title>Components Reporting</title>
       <single>
-        <search>
+        <search base="base_health">
           <query>
-            | stats latest(lastSuccessTime) AS last_success
-            | eval freshness=now()-strptime(last_success,"%Y-%m-%dT%H:%M:%S")
-            | eval freshness_readable=case(
-                freshness<300,"Just now",
-                freshness<3600,round(freshness/60)." minutes ago",
-                freshness<86400,round(freshness/3600)." hours ago",
-                true(),round(freshness/86400)." days ago"
-              )
-            | fields freshness_readable
+            | stats dc(component)
           </query>
         </search>
       </single>
     </panel>
 
     <panel>
-      <title>❌ Failed Collections (24h)</title>
+      <title>Failures (24h)</title>
       <single>
-        <search>
+        <search base="base_health">
           <query>
-            | where status="Failed"
+            | search status="Failed"
             | stats count
           </query>
         </search>
@@ -70,65 +76,74 @@
     </panel>
   </row>
 
-  <!-- COMPONENT STATUS -->
+  <!-- ========================= -->
+  <!-- COMPONENT STATUS TABLE -->
+  <!-- ========================= -->
   <row>
     <panel>
-      <title>🧩 Component Health Status</title>
+      <title>Component Health Status</title>
       <table>
-        <search>
+        <search base="base_health">
           <query>
             | eval status_icon=case(
                 status="Healthy","🟢",
                 status="Degraded","🟠",
-                status="Failed","🔴"
+                status="Failed","🔴",
+                true(),"⚪"
               )
             | table
                 status_icon
-                componentName
+                component
                 status
-                lastCheckedTime
-                errorCode
-                errorMessage
+                event_time
+                error_code
+                error_message
+            | sort component
           </query>
         </search>
-        <option name="count">15</option>
+        <option name="count">20</option>
         <option name="wrap">true</option>
       </table>
     </panel>
   </row>
 
+  <!-- ========================= -->
   <!-- HEALTH TREND -->
+  <!-- ========================= -->
   <row>
     <panel>
-      <title>📈 Health Status Over Time</title>
+      <title>Health Status Trend</title>
       <chart>
-        <search>
+        <search base="base_health">
           <query>
-            | eval severity=case(
+            | eval health_level=case(
                 status="Healthy",1,
                 status="Degraded",2,
-                status="Failed",3
+                status="Failed",3,
+                true(),0
               )
-            | timechart span=1h max(severity) AS health_level
+            | timechart span=1h max(health_level) AS health_level
           </query>
         </search>
         <option name="charting.chart">line</option>
+        <option name="charting.axisY.title">Health Level</option>
         <option name="charting.legend.placement">none</option>
-        <option name="charting.axisY.title">Health Severity</option>
       </chart>
     </panel>
   </row>
 
+  <!-- ========================= -->
   <!-- RECENT ERRORS -->
+  <!-- ========================= -->
   <row>
     <panel>
-      <title>🚨 Recent Health Errors</title>
+      <title>Recent Health Errors</title>
       <table>
-        <search>
+        <search base="base_health">
           <query>
-            | where status="Failed"
-            | table _time componentName errorCode errorMessage
-            | sort _time desc
+            | search status="Failed"
+            | table _time component error_code error_message
+            | sort - _time
           </query>
         </search>
         <option name="count">20</option>
