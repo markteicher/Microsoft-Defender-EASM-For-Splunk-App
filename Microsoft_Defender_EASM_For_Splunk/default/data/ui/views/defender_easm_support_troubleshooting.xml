@@ -1,46 +1,149 @@
-<dashboard>
+<!-- defender_easm_support_troubleshooting.xml -->
+<!-- Microsoft Defender EASM for Splunk App -->
+<!-- Support & Troubleshooting Dashboard -->
+
+<dashboard version="1.1">
   <label>Support & Troubleshooting</label>
 
+  <description>
+    Operational troubleshooting view for Microsoft Defender External Attack Surface Management.
+    Focuses on ingestion health, data connections, failed operations, and recent errors.
+  </description>
+
+  <!-- ========================= -->
+  <!-- BASE SEARCH: HEALTH -->
+  <!-- ========================= -->
+  <search id="health_base">
+    <query>
+      `easm_index`
+      sourcetype=defender:easm:health
+    </query>
+    <earliest>-24h@h</earliest>
+    <latest>now</latest>
+  </search>
+
+  <!-- ========================= -->
+  <!-- CONNECTOR / DATA CONNECTION HEALTH -->
+  <!-- ========================= -->
   <row>
     <panel>
-      <title>Connector Health</title>
+      <title>Data Connection Health</title>
       <table>
         <search>
           <query>
-            index=defender_easm sourcetype=easm:connections
-            | table connector_type status last_success last_error
+            `easm_index`
+            sourcetype=defender:easm:data_connection
+            | eval last_run=strftime(lastRunTime,"%Y-%m-%d %H:%M:%S")
+            | eval next_run=strftime(nextRunTime,"%Y-%m-%d %H:%M:%S")
+            | table name type status last_run next_run errorMessage
+            | sort name
           </query>
         </search>
+        <option name="count">10</option>
+        <option name="wrap">true</option>
       </table>
     </panel>
   </row>
 
+  <!-- ========================= -->
+  <!-- FAILED TASKS / OPERATIONS -->
+  <!-- ========================= -->
   <row>
     <panel>
-      <title>Task Execution Failures</title>
+      <title>Failed Tasks & Operations</title>
       <chart>
         <search>
           <query>
-            index=defender_easm sourcetype=easm:tasks status=failed
-            | timechart count
+            `easm_index`
+            sourcetype=defender:easm:task
+            state=failed
+            | timechart span=1h count
           </query>
         </search>
         <option name="charting.chart">line</option>
+        <option name="charting.legend.placement">none</option>
       </chart>
     </panel>
   </row>
 
+  <!-- ========================= -->
+  <!-- FAILED DISCOVERY JOBS -->
+  <!-- ========================= -->
   <row>
     <panel>
-      <title>Recent Errors</title>
+      <title>Discovery Failures</title>
       <table>
         <search>
           <query>
-            index=defender_easm level=error
-            | table _time component message
+            `easm_index`
+            sourcetype=defender:easm:discovery
+            status=failed
+            | table
+                discoveryId
+                name
+                status
+                startTime
+                endTime
+                errorMessage
+            | sort - startTime
           </query>
         </search>
+        <option name="count">10</option>
+        <option name="wrap">true</option>
       </table>
     </panel>
   </row>
+
+  <!-- ========================= -->
+  <!-- REPORT FAILURES -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Recent Report Failures</title>
+      <table>
+        <search>
+          <query>
+            `easm_index`
+            sourcetype=defender:easm:report
+            status=failed OR status=error
+            | eval failure_reason=coalesce(error_message, error_code, "Unknown")
+            | table
+                created_time
+                report_name
+                report_type
+                status
+                failure_reason
+            | sort - created_time
+          </query>
+        </search>
+        <option name="count">10</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- ========================= -->
+  <!-- PLATFORM HEALTH ERRORS -->
+  <!-- ========================= -->
+  <row>
+    <panel>
+      <title>Platform Health Errors</title>
+      <table>
+        <search base="health_base">
+          <query>
+            | where status="Failed"
+            | table
+                _time
+                componentName
+                errorCode
+                errorMessage
+            | sort - _time
+          </query>
+        </search>
+        <option name="count">15</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+
 </dashboard>
