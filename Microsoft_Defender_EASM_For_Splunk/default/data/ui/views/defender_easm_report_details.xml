@@ -4,41 +4,58 @@
 
 <dashboard version="1.1">
   <label>Report Details</label>
+
   <description>
-    Detailed view of a single Microsoft Defender EASM report, including
-    metadata, execution status, and timing.
+    Detailed drilldown view for a single Microsoft Defender EASM report,
+    including metadata, execution status, and duration.
   </description>
 
-  <!-- Input: Report Selector -->
-  <row>
-    <panel>
-      <title>Select Report</title>
-      <input type="dropdown" token="report_id">
-        <label>Report ID</label>
-        <choice value="*">All</choice>
-        <search>
-          <query>
-            index=security_defender_easm sourcetype=defender:easm:report
-            | stats values(report_id) as report_id
-            | mvexpand report_id
-            | sort report_id
-          </query>
-        </search>
-        <fieldForLabel>report_id</fieldForLabel>
-        <fieldForValue>report_id</fieldForValue>
-      </input>
-    </panel>
-  </row>
+  <!-- ========================= -->
+  <!-- REPORT SELECTOR -->
+  <!-- ========================= -->
 
-  <!-- Core Metadata -->
+  <fieldset submitButton="false">
+    <input type="dropdown" token="report_id">
+      <label>Report ID</label>
+      <choice value="*">All</choice>
+      <search>
+        <query>
+          `easm_index`
+          sourcetype=defender:easm:report
+          | stats values(report_id) AS report_id
+          | mvexpand report_id
+          | sort report_id
+        </query>
+      </search>
+      <fieldForLabel>report_id</fieldForLabel>
+      <fieldForValue>report_id</fieldForValue>
+    </input>
+  </fieldset>
+
+  <!-- ========================= -->
+  <!-- BASE SEARCH -->
+  <!-- ========================= -->
+
+  <search id="base_report">
+    <query>
+      `easm_index`
+      sourcetype=defender:easm:report
+      | search report_id="$report_id$"
+    </query>
+    <earliest>-180d@d</earliest>
+    <latest>now</latest>
+  </search>
+
+  <!-- ========================= -->
+  <!-- REPORT METADATA -->
+  <!-- ========================= -->
+
   <row>
     <panel>
       <title>Report Metadata</title>
       <table>
-        <search>
+        <search base="base_report">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:report
-            | search report_id=$report_id$
             | table
                 report_id
                 report_name
@@ -48,52 +65,54 @@
                 created_time
                 completed_time
           </query>
-          <earliest>-180d</earliest>
-          <latest>now</latest>
         </search>
         <option name="count">5</option>
+        <option name="wrap">true</option>
       </table>
     </panel>
   </row>
 
-  <!-- Execution Timing -->
+  <!-- ========================= -->
+  <!-- EXECUTION DURATION -->
+  <!-- ========================= -->
+
   <row>
     <panel>
       <title>Execution Duration</title>
       <table>
-        <search>
+        <search base="base_report">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:report
-            | search report_id=$report_id$
-            | eval duration_seconds=completed_time-created_time
+            | eval created_epoch=strptime(created_time,"%Y-%m-%dT%H:%M:%S")
+            | eval completed_epoch=strptime(completed_time,"%Y-%m-%dT%H:%M:%S")
+            | eval duration_seconds=completed_epoch-created_epoch
+            | eval duration_minutes=round(duration_seconds/60,2)
             | table
                 report_id
                 status
                 created_time
                 completed_time
                 duration_seconds
+                duration_minutes
           </query>
-          <earliest>-180d</earliest>
-          <latest>now</latest>
         </search>
         <option name="count">5</option>
+        <option name="wrap">true</option>
       </table>
     </panel>
   </row>
 
-  <!-- Status Timeline -->
+  <!-- ========================= -->
+  <!-- STATUS TIMELINE -->
+  <!-- ========================= -->
+
   <row>
     <panel>
       <title>Status Timeline</title>
       <chart>
-        <search>
+        <search base="base_report">
           <query>
-            index=security_defender_easm sourcetype=defender:easm:report
-            | search report_id=$report_id$
-            | timechart count by status
+            | timechart span=1d count BY status
           </query>
-          <earliest>-180d</earliest>
-          <latest>now</latest>
         </search>
         <option name="charting.chart">line</option>
         <option name="charting.legend.placement">right</option>
