@@ -32,3 +32,7 @@ export = system
 [savedsearches]
 access = read : [ * ], write : [ admin ]
 export = system
+
+[web]
+access = read : [ * ], write : [ admin ]
+export = system
