@@ -1,5 +1,6 @@
 # metadata/local.meta
-# Local execution permissions for Defender EASM
+# Microsoft Defender EASM for Splunk App
+# Local execution permissions (non-exported)
 
 [app]
 access = read : [ * ], write : [ admin ]
@@ -8,4 +9,7 @@ access = read : [ * ], write : [ admin ]
 access = read : [ * ], write : [ admin ]
 
 [restmap]
+access = read : [ * ], write : [ admin ]
+
+[web]
 access = read : [ * ], write : [ admin ]
