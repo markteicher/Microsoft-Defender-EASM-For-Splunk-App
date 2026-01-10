@@ -1,0 +1,11 @@
+# metadata/local.meta
+# Local execution permissions for Defender EASM
+
+[app]
+access = read : [ * ], write : [ admin ]
+
+[inputs]
+access = read : [ * ], write : [ admin ]
+
+[restmap]
+access = read : [ * ], write : [ admin ]
