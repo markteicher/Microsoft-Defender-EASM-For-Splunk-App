@@ -2,17 +2,16 @@
   "schemaVersion": "1.0.0",
   "info": {
     "id": "microsoft_defender_easm_for_splunk",
-    "name": "Microsoft Defender EASM for Splunk",
+    "title": "Microsoft Defender EASM for Splunk",
     "version": "1.0.0",
     "author": "Mark Teicher",
     "description": "Full Splunk App for Microsoft Defender External Attack Surface Management (EASM). Provides asset inventory, attack surface insights, security posture, compliance dashboards, discovery, labels, tasks, data connections, and operational visibility using Defender EASM REST APIs.",
+    "license": {
+      "name": "MIT"
+    },
     "support": {
       "email": "mark.teicher@gmail.com",
       "website": "https://learn.microsoft.com/en-us/azure/external-attack-surface-management/"
-    },
-    "license": {
-      "name": "MIT License",
-      "url": "https://opensource.org/licenses/MIT"
     }
   }
 }
