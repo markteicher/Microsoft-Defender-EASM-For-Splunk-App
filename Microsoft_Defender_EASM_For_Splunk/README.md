@@ -47,7 +47,6 @@ Microsoft Defender EASM discovers and tracks the following asset classes:
 | 🔄 Asset Lifecycle | New, existing, and removed asset tracking |
 | 🧱 Infrastructure Mapping | Domain → host → IP → ASN relationships |
 | 🔐 Certificate Monitoring | SSL certificate inventory and expiration |
-| 🌍 Geographic Analysis | Country and ASN-based exposure insights |
 | 🧠 Contextual Pivoting | Pivot across assets, ownership, and evidence |
 
 ---
@@ -57,10 +56,10 @@ Microsoft Defender EASM discovers and tracks the following asset classes:
 | Feature | Description |
 |------|-------------|
 | 📡 Modular Input Framework | Secure API-based ingestion |
-| 🔑 API Key Management | Encrypted credential storage |
+| 🔑 Credential Management | Encrypted credential storage via Splunk |
 | 🌐 Proxy Support | Enterprise proxy compatibility |
 | 🩺 Health Monitoring | API reachability and ingestion status |
-| 📋 Operational Logging | Full API and ingestion traceability |
+| 📋 Operational Logging | Full ingestion traceability |
 | ⏱️ Rate-Limit Awareness | Safe polling and throttling handling |
 
 ---
@@ -69,82 +68,111 @@ Microsoft Defender EASM discovers and tracks the following asset classes:
 
 | Dashboard | Description |
 |---------|-------------|
-| 🌐 Overview | High-level external exposure summary |
-| 🧭 Asset Inventory | Complete asset inventory by type |
-| 🧱 Infrastructure Map | Domain, host, IP, ASN relationships |
-| 🔐 Certificates | SSL certificate monitoring |
-| 🌍 Geography | Asset distribution by country and ASN |
-| 📈 Trends | Asset growth and change trends |
-| ⚙️ Operations | Ingestion metrics and health |
-| ❤️ Health | API and data freshness monitoring |
+| Overview | High-level external exposure summary |
+| Attack Surface Summary | Aggregated exposure and findings summary |
+| Security Posture | Posture scoring and posture-related insights |
+| GDPR Compliance | GDPR-oriented insights derived from exposure insights |
+| OWASP Top 10 | OWASP Top 10 insights derived from exposure insights |
+| CWE Top 25 | CWE Top 25 insights derived from exposure insights |
+| CISA Known Exploits | KEV-oriented insights derived from exposure insights |
+| Trends | Inventory and activity trends |
+| Operations | Ingestion and operational visibility |
+| Health | API and data freshness monitoring |
+| Inventory | Unified inventory across asset types |
+| Assets | Asset resource listing and pivoting |
+| Inventory Changes | Add/remove tracking (if ingested) |
+| Discovery | Discovery templates/runs visibility |
+| Data Connections | Data connection inventory |
+| Data Connection Validation | Data connection validation visibility |
+| Task Manager | Task orchestration visibility |
+| Tasks | Task detail listing |
+| Reports | Report inventory |
 
 ---
 
 ## 🧾 Sourcetypes
 
-The app ingests raw JSON events using the following sourcetypes:
+The app ingests raw JSON events using the following sourcetypes (as configured in `default/inputs.conf`):
 
 ### Core Inventory (Data Plane)
-- defender:easm:domain
-- defender:easm:host
-- defender:easm:page
-- defender:easm:ip_address
-- defender:easm:ip_block
-- defender:easm:asn
-- defender:easm:ssl_certificate
-- defender:easm:whois_contact
-- defender:easm:dns_record
+- `defender:easm:domain`
+- `defender:easm:host`
+- `defender:easm:page`
+- `defender:easm:ip_address`
+- `defender:easm:ip_block`
+- `defender:easm:asn`
+- `defender:easm:ssl_certificate`
+- `defender:easm:whois_contact`
+- `defender:easm:dns_record`
 
 ### Exposure / Attack Surface
-- defender:easm:exposure_insight
+- `defender:easm:exposure_insight`
 
 ### Discovery & Tasking
-- defender:easm:discovery_template
-- defender:easm:discovery_run
-- defender:easm:task
+- `defender:easm:discovery_template`
+- `defender:easm:discovery_run`
+- `defender:easm:task`
 
 ### Data Connections
-- defender:easm:data_connection
-- defender:easm:data_connection_validation
+- `defender:easm:data_connection`
+- `defender:easm:data_connection_validation`
 
 ### Reporting
-- defender:easm:report
-- defender:easm:report_output
+- `defender:easm:report`
+- `defender:easm:report_output`
 
 ### RBAC & Control Plane
-- defender:easm:rbac:role_definition
-- defender:easm:rbac:role_assignment
-- defender:easm:workspace
-- defender:easm:operations
-- defender:easm:license
+- `defender:easm:rbac:role_definition`
+- `defender:easm:rbac:role_assignment`
+- `defender:easm:workspace`
+- `defender:easm:operations`
+- `defender:easm:license`
 
 ---
 
 ## 🧭 Navigation Structure
 
-### 📁 General
-- Inventory
+Navigation matches `default/data/ui/nav/default.xml`:
 
-### 📊 Dashboards
-- Attack Surface Summary
-- Security Posture
-- GDPR Compliance
-- OWASP Top 10
+### Overview
+- **Overview**
 
-### 🛠️ Manage
-- Discovery
-- Labels
-- Billable Assets
-- Data Connections
-- Task Manager
+### Dashboards
+- Attack Surface Summary  
+- Security Posture  
+- GDPR Compliance  
+- OWASP Top 10  
+- CWE Top 25  
+- CISA Known Exploits  
+- Trends  
+- Operations  
+- Health  
 
-### 👥 Users
-- User Permissions
+### Manage
+- Inventory  
+- Assets  
+- Inventory Changes  
+- Discovery  
+- Labels  
+- Billable Assets  
+- Data Connections  
+- Data Connection Validation  
+- Task Manager  
+- Tasks  
+- Reports  
 
-### ❓ Help
+### Users
+- User Permissions  
+- User Activity  
+- Privileged Role Activity  
+
+### Platform
+- Workspaces  
+- Role Definitions  
+- Policies  
+
+### Help
 - Support & Troubleshooting
-
----
 
 ## Deployment
 
