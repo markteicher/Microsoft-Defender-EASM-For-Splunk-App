@@ -6,14 +6,6 @@ Microsoft Defender External Attack Surface Management (EASM) for Splunk provides
 
 This Splunk App enables security teams to **discover, monitor, analyze, and operationalize external attack surface data** directly in Splunk—without relying on the Microsoft Defender External Attack Surface Management (EASM) portal User Interface.
 
----
-# Microsoft Defender EASM for Splunk App
-
-## Overview
-
-Microsoft Defender External Attack Surface Management (EASM) for Splunk provides full visibility into your organization’s externally exposed digital footprint using the Microsoft Defender EASM REST APIs.
-
-This Splunk App enables security teams to **discover, monitor, analyze, and operationalize external attack surface data** directly in Splunk—without relying on the Microsoft Defender External Attack Surface Management (EASM) portal User Interface.
 
 ---
 
