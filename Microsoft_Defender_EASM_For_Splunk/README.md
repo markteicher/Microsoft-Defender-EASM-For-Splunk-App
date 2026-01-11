@@ -188,7 +188,14 @@ Navigation matches `default/data/ui/nav/default.xml`:
 
 ### Step 2: Configure the App
 
-Navigate to **Apps → Microsoft Defender EASM → Setup**
+This app uses a guided setup workflow (`setup.xml`) to ensure secure and AppInspect-compliant configuration.
+
+Navigate to **Apps → Microsoft Defender EASM → Setup** to configure:
+- Microsoft Defender EASM API credentials (stored securely)
+- Optional enterprise proxy settings
+- Modular input enablement and polling intervals
+
+All inputs are **disabled by default** and must be enabled through the setup interface.
 
 #### API Configuration
 - Defender EASM API Key
