@@ -7,6 +7,15 @@ Microsoft Defender External Attack Surface Management (EASM) for Splunk provides
 This Splunk App enables security teams to **discover, monitor, analyze, and operationalize external attack surface data** directly in Splunk—without relying on the Microsoft Defender External Attack Surface Management (EASM) portal User Interface.
 
 ---
+# Microsoft Defender EASM for Splunk App
+
+## Overview
+
+Microsoft Defender External Attack Surface Management (EASM) for Splunk provides full visibility into your organization’s externally exposed digital footprint using the Microsoft Defender EASM REST APIs.
+
+This Splunk App enables security teams to **discover, monitor, analyze, and operationalize external attack surface data** directly in Splunk—without relying on the Microsoft Defender External Attack Surface Management (EASM) portal User Interface.
+
+---
 
 ## Supported Asset Types
 
@@ -20,6 +29,7 @@ Microsoft Defender EASM discovers and tracks the following asset classes:
 - Autonomous System Numbers (ASNs)
 - SSL Certificates
 - WHOIS Contacts
+- DNS Records
 
 ---
 
@@ -81,19 +91,171 @@ Microsoft Defender EASM discovers and tracks the following asset classes:
 
 ## 🧾 Sourcetypes
 
-| Sourcetype | Description |
-|-----------|-------------|
-| `defender:easm:assets` | Unified asset records |
-| `defender:easm:domains` | Domain assets |
-| `defender:easm:hosts` | Host assets |
-| `defender:easm:pages` | Web page assets |
-| `defender:easm:ip_addresses` | IP address assets |
-| `defender:easm:ip_blocks` | IP block assets |
-| `defender:easm:asns` | Autonomous System Numbers |
-| `defender:easm:certificates` | SSL certificates |
-| `defender:easm:whois` | WHOIS contact data |
-| `defender:easm:health` | Collection health |
+The app ingests raw JSON events using the following sourcetypes:
 
+### Core Inventory (Data Plane)
+- `defender:easm:domain`
+- `defender:easm:host`
+- `defender:easm:page`
+- `defender:easm:ip_address`
+- `defender:easm:ip_block`
+- `defender:easm:asn`
+- `defender:easm:ssl_certificate`
+- `defender:easm:whois_contact`
+- `defender:easm:dns_record`
+
+### Exposure / Attack Surface
+- `defender:easm:exposure_insight`
+
+### Discovery & Tasking
+- `defender:easm:discovery_template`
+- `defender:easm:discovery_run`
+- `defender:easm:task`
+
+### Data Connections
+- `defender:easm:data_connection`
+- `defender:easm:data_connection_validation`
+
+### Reporting
+- `defender:easm:report`
+- `defender:easm:report_output`
+
+### RBAC & Control Plane
+- `defender:easm:rbac:role_definition`
+- `defender:easm:rbac:role_assignment`
+- `defender:easm:workspace`
+- `defender:easm:operations`
+- `defender:easm:license`
+
+---
+
+## 🧭 Navigation Structure
+
+### 📁 General
+- **Inventory**
+
+---
+
+### 📊 Dashboards
+- **Attack Surface Summary**
+- **Security Posture**
+- **GDPR Compliance**
+- **OWASP Top 10**
+
+---
+
+### 🛠️ Manage
+- **Discovery**
+- **Labels**
+- **Billable Assets**
+- **Data Connections**
+- **Task Manager**
+
+---
+
+### 👥 Users
+- **User Permissions**
+
+---
+
+### ❓ Help
+- **Support & Troubleshooting**
+
+---
+
+## 📊 Overview Dashboard
+
+### 🔢 Asset Inventory Summary
+
+| Metric | Description |
+|------|-------------|
+| **Domains** | Count of discovered domains |
+| **Hosts** | Count of discovered hosts |
+| **Pages** | Count of discovered web pages |
+| **SSL Certificates** | Count of discovered SSL certificates |
+| **ASNs** | Count of associated Autonomous System Numbers |
+| **IP Blocks** | Count of discovered IP blocks |
+| **IP Addresses** | Count of discovered IP addresses |
+| **Contacts** | Count of discovered WHOIS contacts |
+| **DNS Records** | Count of discovered DNS records |
+
+---
+
+### 📌 Attack Surface Insights
+
+| Priority Level | Description |
+|---------------|-------------|
+| **High Priority** | High-risk attack surface findings requiring immediate attention |
+| **Medium Priority** | Moderate-risk exposure findings |
+| **Low Priority** | Informational or low-risk exposure findings |
+
+---
+
+## Deployment
+
+### Step 1: Install the App
+
+1. Download `Microsoft_Defender_EASM_For_Splunk_App-1.0.0.tar.gz`
+2. In Splunk Web, go to **Apps → Manage Apps**
+3. Select **Install app from file**
+4. Upload the package
+5. Restart Splunk if prompted
+
+---
+
+### Step 2: Configure the App
+
+Navigate to **Apps → Microsoft Defender EASM → Setup**
+
+#### API Configuration
+- **Defender EASM API Key**
+- **API Base URL**  
+  `https://api.defender.microsoft.com`
+- **Request Timeout**
+- **Verify SSL Certificates**
+
+#### Proxy Configuration (Optional)
+- Enable Proxy
+- Proxy URL
+- Proxy Username
+- Proxy Password
+
+#### Data Inputs
+- Domains
+- Hosts
+- Pages
+- IP Addresses
+- IP Blocks
+- ASNs
+- SSL Certificates
+- WHOIS Contacts
+- DNS Records
+- Exposure Insights
+- Discovery Templates
+- Discovery Runs
+- Tasks
+- Data Connections
+- Reports
+- RBAC & Control Plane Objects
+
+---
+
+### Step 3: Validate Configuration
+
+- Test API connectivity
+- Validate authentication
+- Verify permissions
+- Automatic validation on first launch
+
+---
+
+### Step 4: Verify Data Collection
+
+Run the following search in Splunk:
+
+```spl
+index=security_defender_easm sourcetype=defender:easm:*
+| stats count by sourcetype
 ---
 
 ## 🧭 Navigation Structure
