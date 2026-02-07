@@ -1,3 +1,5 @@
+![Microsoft Defender EASM](docs/images/Microsoft_Defender_EASM_logo.PNG)
+
 # Microsoft Defender EASM for Splunk App
 
 ## Overview
