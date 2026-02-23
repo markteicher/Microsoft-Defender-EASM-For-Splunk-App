@@ -97,6 +97,24 @@ Microsoft Defender EASM discovers and tracks the following asset classes:
 | Tasks | Task detail listing |
 | Reports | Report inventory |
 
+
+---
+## Operation Group
+
+| Operation group        | Operation Type | Description                                                                 |
+|------------------------|----------------|-----------------------------------------------------------------------------|
+| Assets                 | Data plane     | Retrieve or update assets by assetID or designated search parameters.      |
+| Data Connections       | Data plane     | Retrieve, create, validate or delete a data connection.                    |
+| Discovery groups       | Data plane     | Retrieve, create, run or remove discovery groups, and retrieve discovery results. |
+| Discovery templates    | Data plane     | Retrieve discovery templates.                                               |
+| Reports                | Data plane     | Retrieve a recent snapshot of asset summary values, or historic summary details. |
+| Saved filters          | Data plane     | Retrieve a list of saved filters, or retrieve, create or remove a specific filter. |
+| Tasks                  | Data plane     | Retrieve a list of tasks, or retrieve, cancel or download data for a specific taskID. |
+| Labels                 | Control plane  | Retrieve labels, or create, update, or delete a label.                     |
+| Operations             | Control plane  | Retrieve a list of operations.                                              |
+| Workspaces             | Control plane  | Retrieve a list of workspaces by resource group or subscription, or create, update, or delete a specific workspace. |
+| Tasks                  | Control plane  | Retrieve tasks submitted in the given workspace.                           |
+
 ---
 
 ## 🧾 Sourcetypes
