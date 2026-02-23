@@ -75,15 +75,7 @@ Microsoft Defender EASM discovers and tracks the following asset classes:
 
 ## 📊 Dashboards
 
-| Dashboard | Description |
-|---------|-------------|
-| Overview | High-level external exposure summary |
-| Attack Surface Summary | Aggregated exposure and findings summary |
-| Security Posture | Posture scoring and posture-related insights |
-| GDPR Compliance | GDPR-oriented insights derived from exposure insights |
-| OWASP Top 10 | OWASP Top 10 insights derived from exposure insights |
-| CWE Top 25 | CWE Top 25 insights derived from exposure insights |
-| CISA Known Exploits | KEV-oriented insights derived from exposure insights |
+
 | 
 
 
