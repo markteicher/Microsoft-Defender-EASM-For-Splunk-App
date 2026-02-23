@@ -84,18 +84,7 @@ Microsoft Defender EASM discovers and tracks the following asset classes:
 | OWASP Top 10 | OWASP Top 10 insights derived from exposure insights |
 | CWE Top 25 | CWE Top 25 insights derived from exposure insights |
 | CISA Known Exploits | KEV-oriented insights derived from exposure insights |
-| Trends | Inventory and activity trends |
-| Operations | Ingestion and operational visibility |
-| Health | API and data freshness monitoring |
-| Inventory | Unified inventory across asset types |
-| Assets | Asset resource listing and pivoting |
-| Inventory Changes | Add/remove tracking (if ingested) |
-| Discovery | Discovery templates/runs visibility |
-| Data Connections | Data connection inventory |
-| Data Connection Validation | Data connection validation visibility |
-| Task Manager | Task orchestration visibility |
-| Tasks | Task detail listing |
-| Reports | Report inventory |
+| 
 
 
 ---
